@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help & Support - BatoSpring Resort</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css" />
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/dashboard-styles.css">
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Sidebar -->
+    <div id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                    <i class="fas fa-leaf text-white"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-gray-800">BatoSpring</h3>
+                    <p class="text-sm text-gray-600">Resort</p>
+                </div>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="bookings.html" class="nav-item">
+                <i class="fas fa-calendar-check"></i>
+                <span>Bookings & Reservations</span>
+            </a>
+            <a href="notifications.html" class="nav-item">
+                <i class="fas fa-bell"></i>
+                <span>Notifications</span>
+            </a>
+            <a href="help.html" class="nav-item active">
+                <i class="fas fa-question-circle"></i>
+                <span>Help</span>
+            </a>
+            <a href="profile.html" class="nav-item">
+                <i class="fas fa-user-cog"></i>
+                <span>Profile Settings</span>
+            </a>
+            <div class="nav-divider"></div>
+            <a href="../index.html" class="nav-item">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Sign Out</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <button id="sidebarToggle" class="lg:hidden p-2 rounded-lg hover:bg-gray-100">
+                        <i class="fas fa-bars text-gray-600"></i>
+                    </button>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">Help & Support</h1>
+                        <p class="text-gray-600">Find answers to common questions or get assistance</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button class="p-2 rounded-lg hover:bg-gray-100 relative">
+                        <i class="fas fa-bell text-gray-600"></i>
+                        <span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+                    </button>
+                    <div class="flex items-center gap-3">
+                        <img src="/placeholder.svg?height=40&width=40" alt="Profile" class="w-10 h-10 rounded-full">
+                        <div class="hidden md:block">
+                            <p class="font-semibold text-gray-800">John Doe</p>
+                            <p class="text-sm text-gray-600">Guest</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Help Content -->
+        <div class="dashboard-content">
+            <!-- Quick Help Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8" data-aos="fade-up">
+                <div class="help-quick-card">
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-phone text-blue-600"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-800 mb-2">Call Us</h3>
+                    <p class="text-gray-600 text-sm mb-4">Speak directly with our support team</p>
+                    <p class="font-semibold text-blue-600">+63 49 562 1234</p>
+                </div>
+                
+                <div class="help-quick-card">
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-envelope text-green-600"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-800 mb-2">Email Support</h3>
+                    <p class="text-gray-600 text-sm mb-4">Send us your questions anytime</p>
+                    <p class="font-semibold text-green-600">support@batospring.com</p>
+                </div>
+                
+                <div class="help-quick-card">
+                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-clock text-purple-600"></i>
+                    </div>
+                    <h3 class="font-semibold text-gray-800 mb-2">Support Hours</h3>
+                    <p class="text-gray-600 text-sm mb-4">We're here to help you</p>
+                    <p class="font-semibold text-purple-600">24/7 Available</p>
+                </div>
+            </div>
+
+            <!-- Search FAQ -->
+            <div class="bg-white rounded-2xl shadow-sm p-6 mb-8" data-aos="fade-up" data-aos-delay="100">
+                <div class="text-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">How can we help you?</h2>
+                    <p class="text-gray-600">Search our knowledge base for quick answers</p>
+                </div>
+                
+                <div class="max-w-2xl mx-auto">
+                    <div class="relative">
+                        <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" id="faqSearch" placeholder="Search for help topics, booking issues, amenities..." 
+                               class="w-full pl-12 pr-4 py-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-transparent text-lg">
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ Categories -->
+            <div class="bg-white rounded-2xl shadow-sm mb-8" data-aos="fade-up" data-aos-delay="200">
+                <div class="p-6 border-b border-gray-200">
+                    <h2 class="text-xl font-bold text-gray-800">Browse by Category</h2>
+                </div>
+                
+                <div class="flex flex-wrap border-b border-gray-200">
+                    <button class="faq-category-tab active" data-category="all">
+                        <i class="fas fa-list mr-2"></i>All Topics
+                    </button>
+                    <button class="faq-category-tab" data-category="booking">
+                        <i class="fas fa-calendar-check mr-2"></i>Booking & Reservations
+                    </button>
+                    <button class="faq-category-tab" data-category="amenities">
+                        <i class="fas fa-swimming-pool mr-2"></i>Amenities & Facilities
+                    </button>
+                    <button class="faq-category-tab" data-category="payment">
+                        <i class="fas fa-credit-card mr-2"></i>Payment & Pricing
+                    </button>
+                    <button class="faq-category-tab" data-category="policies">
+                        <i class="fas fa-file-contract mr-2"></i>Policies
+                    </button>
+                    <button class="faq-category-tab" data-category="account">
+                        <i class="fas fa-user-cog mr-2"></i>Account & Profile
+                    </button>
+                </div>
+            </div>
+
+            <!-- FAQ List -->
+            <div id="faqList" class="space-y-4 mb-8" data-aos="fade-up" data-aos-delay="300">
+                <!-- FAQ items will be dynamically inserted here -->
+            </div>
+
+            <!-- Contact Form -->
+            <div class="bg-white rounded-2xl shadow-sm p-6" data-aos="fade-up" data-aos-delay="400">
+                <div class="max-w-4xl mx-auto">
+                    <div class="text-center mb-8">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-2">Still Need Help?</h2>
+                        <p class="text-gray-600">Can't find what you're looking for? Send us a message and we'll get back to you soon.</p>
+                    </div>
+                    
+                    <form id="helpForm" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="form-group">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" id="fullName" class="form-input" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Email Address</label>
+                            <input type="email" id="email" class="form-input" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Phone Number</label>
+                            <input type="tel" id="phone" class="form-input">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Issue Category</label>
+                            <select id="category" class="form-select" required>
+                                <option value="">Select a category</option>
+                                <option value="booking">Booking & Reservations</option>
+                                <option value="payment">Payment Issues</option>
+                                <option value="amenities">Amenities & Facilities</option>
+                                <option value="account">Account Issues</option>
+                                <option value="technical">Technical Problems</option>
+                                <option value="feedback">Feedback & Suggestions</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Priority Level</label>
+                            <select id="priority" class="form-select" required>
+                                <option value="">Select priority</option>
+                                <option value="low">Low - General inquiry</option>
+                                <option value="medium">Medium - Need assistance</option>
+                                <option value="high">High - Urgent issue</option>
+                                <option value="critical">Critical - Emergency</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Booking Reference (if applicable)</label>
+                            <input type="text" id="bookingRef" class="form-input" placeholder="e.g., BK001">
+                        </div>
+                        
+                        <div class="form-group md:col-span-2">
+                            <label class="form-label">Message</label>
+                            <textarea id="message" class="form-textarea" rows="6" 
+                                      placeholder="Please describe your issue or question in detail..." required></textarea>
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <div class="flex items-center gap-3 mb-6">
+                                <input type="checkbox" id="consent" class="w-4 h-4 text-green-600 border-gray-300 rounded focus:ring-green-500">
+                                <label for="consent" class="text-sm text-gray-600">
+                                    I agree to the processing of my personal data for support purposes
+                                </label>
+                            </div>
+                            
+                            <div class="flex flex-col sm:flex-row gap-4">
+                                <button type="submit" class="btn-primary flex-1 sm:flex-none">
+                                    <i class="fas fa-paper-plane mr-2"></i>
+                                    Send Message
+                                </button>
+                                <button type="reset" class="btn-secondary flex-1 sm:flex-none">
+                                    <i class="fas fa-undo mr-2"></i>
+                                    Clear Form
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="facility-modal">
+        <div class="facility-modal-content max-w-md">
+            <div class="facility-modal-body text-center">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-check text-green-600 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-800 mb-2">Message Sent Successfully!</h3>
+                <p class="text-gray-600 mb-6">Thank you for contacting us. We'll get back to you within 24 hours.</p>
+                <button id="closeSuccessModal" class="btn-primary w-full">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/dashboard-script.js"></script>
+    <script src="js/help-script.js"></script>
+</body>
+</html>

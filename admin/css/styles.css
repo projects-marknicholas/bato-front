@@ -1,0 +1,212 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
+
+:root {
+  --primary-green: #16a34a;
+  --primary-green-dark: #15803d;
+  --primary-green-light: #22c55e;
+  --accent-green: #dcfce7;
+  --text-dark: #1f2937;
+  --text-light: #6b7280;
+  --background: #ffffff;
+  --background-light: #f9fafb;
+  --border: #e5e7eb;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: "Inter", sans-serif;
+  line-height: 1.6;
+  color: var(--text-dark);
+  background-color: var(--background);
+}
+
+/* Removed parallax and custom animations, using AOS instead */
+
+.hover-lift {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.hover-lift:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary-green), var(--primary-green-light));
+  color: white;
+  padding: 12px 32px;
+  border-radius: 50px;
+  text-decoration: none;
+  font-weight: 600;
+  display: inline-block;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, var(--primary-green-dark), var(--primary-green));
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(22, 163, 74, 0.3);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--primary-green);
+  padding: 12px 32px;
+  border: 2px solid var(--primary-green);
+  border-radius: 50px;
+  text-decoration: none;
+  font-weight: 600;
+  display: inline-block;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.btn-secondary:hover {
+  background: var(--primary-green);
+  color: white;
+  transform: translateY(-2px);
+}
+
+.section-padding {
+  padding: 80px 0;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.hero-bg {
+  background: linear-gradient(135deg, var(--accent-green) 0%, var(--background) 100%);
+}
+
+.card {
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.navbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  z-index: 1000;
+  transition: all 0.3s ease;
+}
+
+.navbar.scrolled {
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+#map {
+  height: 400px;
+  width: 100%;
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.mobile-menu {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-menu {
+    display: block;
+  }
+
+  .desktop-menu {
+    display: none;
+  }
+
+  .section-padding {
+    padding: 60px 0;
+  }
+
+  .container {
+    padding: 0 15px;
+  }
+}
+
+/* Added styles for contact form */
+.contact-form {
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  color: var(--text-dark);
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  font-size: 16px;
+  transition: border-color 0.3s ease;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--primary-green);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+/* Added Google Sign-in button styles */
+.google-signin-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: white;
+  color: #333;
+  border: 2px solid #dadce0;
+  padding: 12px 24px;
+  border-radius: 50px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.google-signin-btn:hover {
+  background: #f8f9fa;
+  border-color: #c1c7cd;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}

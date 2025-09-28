@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help & FAQ - BatoSpring Resort</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/dashboard-styles.css">
+    <link rel="stylesheet" href="css/help-styles.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Sidebar -->
+    <div id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                    <i class="fas fa-leaf text-white"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-gray-800">BatoSpring</h3>
+                    <p class="text-sm text-gray-600">Admin Panel</p>
+                </div>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="dashboard.html" class="nav-item">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="bookings.html" class="nav-item">
+                <i class="fas fa-calendar-check"></i>
+                <span>Bookings & Reservations</span>
+            </a>
+            <a href="guests.html" class="nav-item">
+                <i class="fas fa-users"></i>
+                <span>Guest List</span>
+            </a>
+            <a href="resources.html" class="nav-item">
+                <i class="fas fa-building"></i>
+                <span>Resources</span>
+            </a>
+            <a href="help.html" class="nav-item active">
+                <i class="fas fa-question-circle"></i>
+                <span>Help</span>
+            </a>
+            <a href="support.html" class="nav-item">
+                <i class="fas fa-headset"></i>
+                <span>Customer Support</span>
+            </a>
+            <a href="accounts.html" class="nav-item">
+                <i class="fas fa-user-cog"></i>
+                <span>Accounts</span>
+            </a>
+            <a href="news.html" class="nav-item">
+                <i class="fas fa-newspaper"></i>
+                <span>News & Events</span>
+            </a>
+            <a href="profile.html" class="nav-item">
+                <i class="fas fa-user-circle"></i>
+                <span>Profile Settings</span>
+            </a>
+            <div class="nav-divider"></div>
+            <a href="../index.html" class="nav-item">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Sign Out</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <button id="sidebarToggle" class="lg:hidden p-2 rounded-lg hover:bg-gray-100">
+                        <i class="fas fa-bars text-gray-600"></i>
+                    </button>
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-800">Help & FAQ Management</h1>
+                        <p class="text-gray-600">Manage frequently asked questions for users</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <button class="p-2 rounded-lg hover:bg-gray-100 relative">
+                        <i class="fas fa-bell text-gray-600"></i>
+                        <span class="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+                    </button>
+                    <div class="flex items-center gap-3">
+                        <img src="/placeholder.svg?height=40&width=40" alt="Profile" class="w-10 h-10 rounded-full">
+                        <div class="hidden md:block">
+                            <p class="font-semibold text-gray-800">Admin User</p>
+                            <p class="text-sm text-gray-600">Administrator</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Content -->
+        <div class="dashboard-content">
+            <!-- Stats Cards with AOS animations -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="stat-card" data-aos="fade-up" data-aos-delay="100">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Total FAQs</p>
+                            <p id="totalFAQs" class="text-2xl font-bold text-gray-800">12</p>
+                            <p class="text-sm text-green-600">All questions</p>
+                        </div>
+                        <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-question-circle text-blue-600"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-card" data-aos="fade-up" data-aos-delay="200">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Active FAQs</p>
+                            <p id="activeFAQs" class="text-2xl font-bold text-gray-800">10</p>
+                            <p class="text-sm text-green-600">Visible to users</p>
+                        </div>
+                        <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-check-circle text-green-600"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-card" data-aos="fade-up" data-aos-delay="300">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Categories</p>
+                            <p id="categoriesCount" class="text-2xl font-bold text-gray-800">5</p>
+                            <p class="text-sm text-yellow-600">Unique categories</p>
+                        </div>
+                        <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-tags text-yellow-600"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="stat-card" data-aos="fade-up" data-aos-delay="400">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Pending Review</p>
+                            <p id="pendingFAQs" class="text-2xl font-bold text-gray-800">2</p>
+                            <p class="text-sm text-red-600">Need attention</p>
+                        </div>
+                        <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                            <i class="fas fa-exclamation-circle text-red-600"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQs Table with AOS animation -->
+            <div class="table-container" data-aos="fade-up" data-aos-delay="500">
+                <!-- Table Header with Filters and Search -->
+                <div class="table-header">
+                    <div class="flex items-center gap-4 flex-wrap">
+                        <div class="relative">
+                            <input type="text" id="searchInput" placeholder="Search FAQs..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                        </div>
+                        
+                        <select id="categoryFilter" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            <option value="all">All Categories</option>
+                            <option value="booking">Booking</option>
+                            <option value="facilities">Facilities</option>
+                            <option value="payment">Payment</option>
+                            <option value="general">General</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <button id="addFAQBtn" class="btn-primary">
+                            <i class="fas fa-plus mr-2"></i> Add FAQ
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Table -->
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th data-sort="question">Question</th>
+                                <th data-sort="category">Category</th>
+                                <th data-sort="lastUpdated">Last Updated</th>
+                                <th data-sort="status">Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="faqsTableBody">
+                            <!-- FAQs will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Table Footer with Pagination -->
+                <div class="table-footer">
+                    <div class="text-sm text-gray-600">
+                        Showing <span id="showingFrom">1</span> to <span id="showingTo">10</span> of <span id="totalRecords">12</span> FAQs
+                    </div>
+                    
+                    <div class="pagination" id="pagination">
+                        <!-- Pagination will be populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit FAQ Modal -->
+    <div id="faqModal" class="faq-modal">
+        <div class="faq-modal-content" data-aos="zoom-in">
+            <div class="faq-modal-header">
+                <h3 class="text-xl font-bold text-gray-800" id="modalTitle">Add New FAQ</h3>
+                <button id="closeModal" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="faq-modal-body">
+                <form id="faqForm">
+                    <input type="hidden" id="faqId">
+                    
+                    <div class="form-group">
+                        <label for="question" class="form-label">Question</label>
+                        <input type="text" id="question" class="form-input" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="answer" class="form-label">Answer</label>
+                        <textarea id="answer" class="form-textarea" rows="6" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="category" class="form-label">Category</label>
+                        <select id="category" class="form-select" required>
+                            <option value="">Select Category</option>
+                            <option value="booking">Booking</option>
+                            <option value="facilities">Facilities</option>
+                            <option value="payment">Payment</option>
+                            <option value="general">General</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="status" class="form-label">Status</label>
+                        <select id="status" class="form-select" required>
+                            <option value="active">Active</option>
+                            <option value="pending">Pending Review</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                    
+                    <div class="flex justify-end gap-4 mt-8">
+                        <button type="button" class="btn-secondary" id="cancelBtn">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn-primary">
+                            Save FAQ
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Sidebar Overlay -->
+    <div id="sidebarOverlay" class="sidebar-overlay"></div>
+
+    <!-- AOS Script -->
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    
+    <script src="js/help-script.js"></script>
+</body>
+</html>

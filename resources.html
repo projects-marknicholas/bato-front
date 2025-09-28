@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resources - BatoSpring Resort</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/index.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-green': '#16a34a',
+                        'primary-green-dark': '#15803d',
+                        'primary-green-light': '#22c55e',
+                        'accent-green': '#dcfce7',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-2">
+                    <div class="w-10 h-10 bg-gradient-to-br from-primary-green to-primary-green-light rounded-full flex items-center justify-center">
+                        <span class="text-white font-bold text-lg">BS</span>
+                    </div>
+                    <span class="text-2xl font-bold text-primary-green">BatoSpring</span>
+                </div>
+                
+                <div class="desktop-menu hidden md:flex items-center space-x-8">
+                    <a href="index.html" class="text-gray-700 hover:text-primary-green transition-colors">Home</a>
+                    <a href="index.html#about" class="text-gray-700 hover:text-primary-green transition-colors">About</a>
+                    <a href="resources.html" class="text-primary-green font-semibold">Resources</a>
+                    <a href="index.html#fees" class="text-gray-700 hover:text-primary-green transition-colors">Fees</a>
+                    <a href="index.html#contact" class="text-gray-700 hover:text-primary-green transition-colors">Contact</a>
+                    <div class="flex items-center space-x-4">
+                        <button onclick="signInWithGoogle()" class="btn-primary flex items-center space-x-2">
+                            <svg class="w-5 h-5" viewBox="0 0 24 24">
+                                <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                            </svg>
+                            <span>Sign in with Google</span>
+                        </button>
+                    </div>
+                </div>
+                
+                <button class="mobile-menu md:hidden" onclick="toggleMobileMenu()">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div id="mobileMenu" class="mobile-menu-content hidden md:hidden pb-4">
+                <div class="flex flex-col space-y-4">
+                    <a href="index.html" class="text-gray-700 hover:text-primary-green transition-colors">Home</a>
+                    <a href="index.html#about" class="text-gray-700 hover:text-primary-green transition-colors">About</a>
+                    <a href="resources.html" class="text-primary-green font-semibold">Resources</a>
+                    <a href="index.html#fees" class="text-gray-700 hover:text-primary-green transition-colors">Fees</a>
+                    <a href="index.html#contact" class="text-gray-700 hover:text-primary-green transition-colors">Contact</a>
+                    <div class="pt-4">
+                        <button onclick="signInWithGoogle()" class="btn-primary w-full flex items-center justify-center space-x-2">
+                            <svg class="w-5 h-5" viewBox="0 0 24 24">
+                                <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                            </svg>
+                            <span>Sign in with Google</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero-bg section-padding pt-32">
+        <div class="container">
+            <div class="text-center" data-aos="fade-up" data-aos-duration="1000">
+                <h1 class="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
+                    Our <span class="text-primary-green">Resources</span>
+                </h1>
+                <p class="text-xl text-gray-600 max-w-3xl mx-auto mb-8">
+                    Explore our comprehensive range of accommodations and facilities designed for your perfect getaway
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <a href="index.html" class="btn-secondary">← Back to Home</a>
+                    <button onclick="handleBookingClick()" class="btn-primary">Book Now</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Resources Section -->
+    <section class="section-padding bg-white">
+        <div class="container">
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Premium Rooms -->
+                <div class="card hover-lift" data-aos="zoom-in" data-aos-duration="1000" data-aos-delay="100">
+                    <img src="/placeholder.svg?height=250&width=400" 
+                         alt="Premium Rooms" 
+                         class="w-full h-56 object-cover rounded-xl mb-6">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-3">Premium Rooms</h3>
+                    <p class="text-gray-600 mb-4">
+                        Spacious and elegantly furnished rooms featuring king-size beds, modern amenities, air conditioning, 
+                        private bathrooms, and stunning garden views. Perfect for couples and small families.
+                    </p>
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-3xl font-bold text-primary-green">₱2,500</span>
+                        <span class="text-sm text-gray-500">per night</span>
+                    </div>
+                    <ul class="text-sm text-gray-600 mb-6 space-y-2">
+                        <li class="flex items-center">
+                            <svg class="w-4 h-4 text-primary-green mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            King-size bed & modern bathroom
+                        </li>
+                        <li class="flex items-center">
+                            <svg class="w-4 h-4 text-primary-green mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            Air conditioning & WiFi
+                        </li>
+                        <li class="flex items-center">
+                            <svg class="w-4 h-4 text-primary-green mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            Garden view & private balcony
+                        </li>
+                    </ul>
+                    <button onclick="handleBookingClick()" class="btn-primary w-full">Book Room</button>
+                </div>
+
+                <!-- Private Cottages -->
+                <div class="card hover-lift" data-aos="zoom-in" data-aos-duration="1000" data-aos-delay="200">
+                    <img src="/placeholder.svg?height=250&width=400" 
+                         alt="Private Cottages" 
+                         class="w-full h-56 object-cover rounded-xl mb-6">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-3">Private Cottages</h3>
+                    <p class="text-gray-600 mb-4">
+                        Charming traditional cottages offering privacy and comfort for families and groups. 
+                        Features include multiple beds, kitchenette, dining area, and private outdoor space.
+                    </p>
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-3xl font-bold text-primary-green">₱1,800</span>
+                        <span class="text-sm text-gray-500">per day</span>
+                    </div>
+                    <ul class="text-sm text-gray-600 mb-6 space-y-2">
+                        <li class="flex items-center">
+                            <svg class="w-4 h-4 text-primary-green mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            Multiple beds & kitchenette
+                        </li>
+                        <li class="flex items-center">
+                            <svg class="w-4 h-4 text-primary-green mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            Private outdoor space
+                        </li>
+                        <li class="flex items-center">
+                            <svg class="w-4 h-4 text-primary-green mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            Perfect for families
+                        </li>
+                    </ul>
+                    <button onclick="handleBookingClick()" class="btn-primary w-full">Book Cottage</button>
+                </div>
+
+                <!-- Bamboo Huts -->
+                <div class="card hover-lift" data-aos="zoom-in" data-aos-duration="1000" data-aos-delay="300">
+                    <img src="/placeholder.svg?height=250&width=400" 
+                         alt="Bamboo Huts" 
+                         class="w-full h-56 object-cover rounded-xl mb-6">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-3">Bamboo Huts</h3>
+                    <p class="text-gray-600 mb-4">
+                        Experience authentic Filipino hospitality in our traditional bamboo huts. 
+                        Eco-friendly accommodations with basic amenities, perfect for nature lovers and budget-conscious travelers.
+                    </p>
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-3xl font-bold text-primary-green">₱1,200</span>
+                        <span class="text-sm text-gray-500">per day</span>
+                    </div>
+                    <ul class="text-sm text-gray-600 mb-6 space-y-2">
+                        <li class="flex items-center">
+                            <svg class="w-4 h-4 text-primary-green mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            Traditional bamboo construction
+                        </li>
+                        <li class="flex items-center">
+                            <svg class="w-4 h-4 text-primary-green mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            Eco-friendly & authentic
+                        </li>
+                        <li class="flex items-center">
+                            <svg class="w-4 h-4 text-primary-green mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            Budget-friendly option
+                        </li>
+                    </ul>
+                    <button onclick="handleBookingClick()" class="btn-primary w-full">Book Hut</button>
+                </div>
+
+                <!-- Dining Tables -->
+                <div class="card hover-lift" data-aos="zoom-in" data-aos-duration="1000" data-aos-delay="400">
+                    <img src="/placeholder.svg?height=250&width=400" 
+                         alt="Dining Tables" 
+                         class="w-full h-56 object-cover rounded-xl mb-6">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-3">Dining Tables</h3>
+                    <p class="text-gray-600 mb-4">
+                        Well-appointed dining areas perfect for family meals and group gatherings. 
+                        Each table accommodates 6-8 people and includes basic dining amenities.
+                    </p>
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-3xl font-bold text-primary-green">₱500</span>
+                        <span class="text-sm text-gray-500">per table/day</span>
+                    </div>
+                    <ul class="text-sm text-gray-600 mb-6 space-y-2">
+                        <li class="flex items-center">
+                            <svg class="w-4 h-4 text-primary-green mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            Seats 6-8 people comfortably
+                        </li>
+                        <li class="flex items-center">
+                            <svg class="w-4 h-4 text-primary-green mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            Shaded outdoor setting
+                        </li>
+                        <li class="flex items-center">
+                            <svg class="w-4 h-4 text-primary-green mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            Perfect for group dining
+                        </li>
+                    </ul>
+                    <button onclick="handleBookingClick()" class="btn-primary w-full">Reserve Table</button>
+                </div>
+
+                <!-- Conference Hall -->
+                <div class="card hover-lift" data-aos="zoom-in" data-aos-duration="1000" data-aos-delay="500">
+                    <img src="/placeholder.svg?height=250&width=400" 
+                         alt="Conference Hall" 
+                         class="w-full h-56 object-cover rounded-xl mb-6">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-3">Conference Hall</h3>
+                    <p class="text-gray-600 mb-4">
+                        Professional meeting space equipped with modern amenities for corporate events, 
+                        seminars, and conferences. Air-conditioned with audio-visual equipment.
+                    </p>
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-3xl font-bold text-primary-green">₱3,500</span>
+                        <span class="text-sm text-gray-500">per day</span>
+                    </div>
+                    <ul class="text-sm text-gray-600 mb-6 space-y-2">
+                        <li class="flex items-center">
+                            <svg class="w-4 h-4 text-primary-green mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            Seats up to 50 people
+                        </li>
+                        <li class="flex items-center">
+                            <svg class="w-4 h-4 text-primary-green mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            Audio-visual equipment
+                        </li>
+                        <li class="flex items-center">
+                            <svg class="w-4 h-4 text-primary-green mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            Air-conditioned & WiFi
+                        </li>
+                    </ul>
+                    <button onclick="handleBookingClick()" class="btn-primary w-full">Book Hall</button>
+                </div>
+
+                <!-- Swimming Pool Access -->
+                <div class="card hover-lift" data-aos="zoom-in" data-aos-duration="1000" data-aos-delay="600">
+                    <img src="/placeholder.svg?height=250&width=400" 
+                         alt="Swimming Pool" 
+                         class="w-full h-56 object-cover rounded-xl mb-6">
+                    <h3 class="text-2xl font-bold text-gray-900 mb-3">Natural Spring Pool</h3>
+                    <p class="text-gray-600 mb-4">
+                        Enjoy our pristine natural spring pool with crystal-clear therapeutic waters. 
+                        Perfect for swimming, relaxation, and family fun in a beautiful natural setting.
+                    </p>
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-3xl font-bold text-primary-green">Included</span>
+                        <span class="text-sm text-gray-500">with entrance</span>
+                    </div>
+                    <ul class="text-sm text-gray-600 mb-6 space-y-2">
+                        <li class="flex items-center">
+                            <svg class="w-4 h-4 text-primary-green mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            Natural spring water
+                        </li>
+                        <li class="flex items-center">
+                            <svg class="w-4 h-4 text-primary-green mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            Therapeutic properties
+                        </li>
+                        <li class="flex items-center">
+                            <svg class="w-4 h-4 text-primary-green mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                            </svg>
+                            Family-friendly environment
+                        </li>
+                    </ul>
+                    <button onclick="handleBookingClick()" class="btn-primary w-full">Learn More</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Call to Action -->
+    <section class="section-padding bg-primary-green text-white">
+        <div class="container text-center">
+            <div data-aos="fade-up" data-aos-duration="1000">
+                <h2 class="text-4xl md:text-5xl font-bold mb-6">Ready to Book Your Stay?</h2>
+                <p class="text-xl mb-8 max-w-3xl mx-auto opacity-90">
+                    Experience the beauty and tranquility of BatoSpring Resort. Sign in to make your reservation and create unforgettable memories.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button onclick="signInWithGoogle()" class="bg-white text-primary-green px-8 py-4 rounded-full font-semibold hover:bg-gray-100 transition-colors flex items-center justify-center space-x-2">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24">
+                            <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                            <path fill="currentColor" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                            <path fill="currentColor" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                            <path fill="currentColor" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        </svg>
+                        <span>Sign in to Book</span>
+                    </button>
+                    <a href="index.html#contact" class="bg-transparent border-2 border-white text-white px-8 py-4 rounded-full font-semibold hover:bg-white hover:text-primary-green transition-colors">
+                        Contact Us
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="container">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center space-x-2 mb-6">
+                        <div class="w-10 h-10 bg-gradient-to-br from-primary-green to-primary-green-light rounded-full flex items-center justify-center">
+                            <span class="text-white font-bold text-lg">BS</span>
+                        </div>
+                        <span class="text-2xl font-bold">BatoSpring</span>
+                    </div>
+                    <p class="text-gray-400 mb-6">
+                        A hidden jewel in San Pablo City, where nature's beauty meets exceptional hospitality.
+                    </p>
+                </div>
+                
+                <div>
+                    <h3 class="text-xl font-semibold mb-6">Quick Links</h3>
+                    <ul class="space-y-3">
+                        <li><a href="index.html" class="text-gray-400 hover:text-white transition-colors">Home</a></li>
+                        <li><a href="index.html#about" class="text-gray-400 hover:text-white transition-colors">About</a></li>
+                        <li><a href="resources.html" class="text-gray-400 hover:text-white transition-colors">Resources</a></li>
+                        <li><a href="index.html#fees" class="text-gray-400 hover:text-white transition-colors">Fees</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-xl font-semibold mb-6">Services</h3>
+                    <ul class="space-y-3">
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Day Tours</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Overnight Stays</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Event Hosting</a></li>
+                        <li><a href="#" class="text-gray-400 hover:text-white transition-colors">Group Bookings</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h3 class="text-xl font-semibold mb-6">Contact Info</h3>
+                    <ul class="space-y-3">
+                        <li class="text-gray-400">+63 926-582-2822</li>
+                        <li class="text-gray-400">batospringsresort@gmail.com</li>
+                        <li class="text-gray-400">San Pablo City, Laguna</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-12 pt-8 text-center">
+                <p class="text-gray-400">
+                    © 2025 BatoSpring Resort. All rights reserved. | A hidden jewel in San Pablo City
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="js/index.js"></script>
+</body>
+</html>
