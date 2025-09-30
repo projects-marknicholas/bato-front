@@ -1,3 +1,25 @@
+// Google Start
+function handleCredentialResponse(response) {
+  const idToken = response.credential;
+
+  fetch(`${window.CONFIG.API_BASE_URL}${window.CONFIG.ENDPOINTS.GOOGLE_CALLBACK}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ google_token: idToken })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      localStorage.setItem("user", JSON.stringify(data.user));
+      alert("Google login successful!");
+    } else {
+      alert("Google login failed: " + (data.error || "Unknown error"));
+    }
+  })
+  .catch(err => console.error("Error:", err));
+}
+// Google End
+
 // Smooth scrolling for navigation links
 document.querySelectorAll('a[href^="#"]').forEach((anchor) => {
   anchor.addEventListener("click", function (e) {
@@ -26,16 +48,6 @@ window.addEventListener("scroll", () => {
 function toggleMobileMenu() {
   const mobileMenu = document.getElementById("mobileMenu")
   mobileMenu.classList.toggle("hidden")
-}
-
-function signInWithGoogle() {
-  // In a real application, this would integrate with Google OAuth
-  alert("Google Sign-in would be implemented here. This redirects to Google OAuth flow for authentication.")
-
-  // Simulate successful login for demo
-  setTimeout(() => {
-    alert("Welcome! You are now signed in. You can now make bookings and access premium features.")
-  }, 1000)
 }
 
 function handleBookingClick() {
