@@ -5,64 +5,15 @@ AOS.init({
     once: true,
 });
 
-// Sample accounts data
-const accountsData = [
-    {
-        id: "ACC001",
-        name: "John Doe",
-        email: "john.doe@example.com",
-        role: "admin",
-        status: "active",
-        lastLogin: "2025-09-24"
-    },
-    {
-        id: "ACC002",
-        name: "Jane Smith",
-        email: "jane.smith@example.com",
-        role: "guest",
-        status: "active",
-        lastLogin: "2025-09-23"
-    },
-    {
-        id: "ACC003",
-        name: "Mike Johnson",
-        email: "mike.j@example.com",
-        role: "guest",
-        status: "suspended",
-        lastLogin: "2025-09-20"
-    },
-    {
-        id: "ACC004",
-        name: "Sarah Williams",
-        email: "sarah.w@example.com",
-        role: "admin",
-        status: "active",
-        lastLogin: "2025-09-22"
-    },
-    {
-        id: "ACC005",
-        name: "David Brown",
-        email: "david.b@example.com",
-        role: "guest",
-        status: "banned",
-        lastLogin: "2025-09-15"
-    },
-    {
-        id: "ACC006",
-        name: "Emily Davis",
-        email: "emily.d@example.com",
-        role: "guest",
-        status: "active",
-        lastLogin: "2025-09-24"
-    }
-];
+// API Configuration
+const API_BASE_URL = window.CONFIG.API_BASE_URL;
+const ENDPOINT_URL = window.CONFIG.ENDPOINTS.ADMIN_ACCOUNTS;
 
 // Global variables
 let currentPage = 1;
-const recordsPerPage = 5;
+const recordsPerPage = 10;
+let allAccounts = [];
 let filteredAccounts = [];
-let sortField = 'name';
-let sortDirection = 'asc';
 
 // DOM Elements
 const sidebarToggle = document.getElementById('sidebarToggle');
@@ -84,15 +35,8 @@ const modalTitle = document.getElementById('modalTitle');
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize data
-    filteredAccounts = [...accountsData];
-    
-    updateStats();
-    sortAccounts();
-    renderTable();
+    initializeApp();
     setupEventListeners();
-    
-    console.log('Page initialized with', accountsData.length, 'accounts');
 });
 
 // Set up event listeners
@@ -114,17 +58,6 @@ function setupEventListeners() {
     }
     if (statusFilter) {
         statusFilter.addEventListener('change', filterAccounts);
-    }
-    
-    // Sorting
-    const sortableHeaders = document.querySelectorAll('th[data-sort]');
-    if (sortableHeaders.length > 0) {
-        sortableHeaders.forEach(th => {
-            th.addEventListener('click', function() {
-                const field = this.getAttribute('data-sort');
-                sortAccounts(field);
-            });
-        });
     }
     
     // Modal
@@ -158,79 +91,180 @@ function toggleSidebar() {
     }
 }
 
-// Sort accounts by specified field
-function sortAccounts(field = null) {
-    if (field) {
-        if (sortField === field) {
-            sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+// Initialize application
+async function initializeApp() {
+    if (!checkAuthentication()) {
+        return;
+    }
+    
+    try {
+        await loadAccounts();
+    } catch (error) {
+        console.error('Failed to initialize app:', error);
+        showError('Failed to load accounts data');
+    }
+}
+
+// Check if user is authenticated
+function checkAuthentication() {
+    const apiKey = getApiKey();
+    const csrfToken = getCsrfToken();
+    
+    if (!apiKey || !csrfToken) {
+        window.location.href = '../index.html';
+        return false;
+    }
+    return true;
+}
+
+// Get API key from localStorage
+function getApiKey() {
+    try {
+        const userData = localStorage.getItem('user');
+        if (userData) {
+            const user = JSON.parse(userData);
+            return user.api_key || null;
+        }
+    } catch (error) {
+        console.error('Error parsing user data from localStorage:', error);
+    }
+    return null;
+}
+
+// Get CSRF token from localStorage
+function getCsrfToken() {
+    try {
+        const userData = localStorage.getItem('user');
+        if (userData) {
+            const user = JSON.parse(userData);
+            return user.csrf_token || null;
+        }
+    } catch (error) {
+        console.error('Error parsing user data from localStorage:', error);
+    }
+    return null;
+}
+
+// API request helper
+async function makeApiRequest(endpoint, options = {}) {
+    const apiKey = getApiKey();
+    const csrfToken = getCsrfToken();
+
+    if (!apiKey) {
+        throw new Error('API key not found. Please sign in again.');
+    }
+
+    if (!csrfToken) {
+        throw new Error('CSRF token not found. Please sign in again.');
+    }
+
+    const defaultOptions = {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+            'X-CSRF-Token': csrfToken,
+        },
+    };
+
+    const config = {
+        ...defaultOptions,
+        ...options,
+        headers: {
+            ...defaultOptions.headers,
+            ...options.headers,
+        },
+    };
+
+    // If body is provided and it's an object, stringify it
+    if (config.body && typeof config.body === 'object') {
+        config.body = JSON.stringify(config.body);
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+        
+        if (response.status === 401) {
+            localStorage.removeItem('user');
+            window.location.href = '../index.html';
+            return;
+        }
+
+        if (response.status === 429) {
+            throw new Error('Rate limit exceeded. Please try again later.');
+        }
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        }
+
+        return response.json();
+    } catch (error) {
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            throw new Error('Network error: Unable to connect to server');
+        }
+        throw error;
+    }
+}
+
+// Load accounts from backend
+async function loadAccounts() {
+    try {
+        showLoadingState('Loading accounts...');
+        
+        // Build query parameters
+        const params = new URLSearchParams();
+        params.append('page', currentPage);
+        params.append('limit', recordsPerPage);
+        
+        if (searchInput && searchInput.value) {
+            params.append('search', searchInput.value);
+        }
+        
+        if (roleFilter && roleFilter.value && roleFilter.value !== 'all') {
+            params.append('role', roleFilter.value);
+        }
+        
+        if (statusFilter && statusFilter.value && statusFilter.value !== 'all') {
+            params.append('status', statusFilter.value);
+        }
+        
+        const data = await makeApiRequest(`${ENDPOINT_URL}?${params.toString()}`);
+        
+        if (data && data.success) {
+            allAccounts = data.data || [];
+            filteredAccounts = [...allAccounts];
+            
+            updateStats();
+            renderTable(data.pagination);
         } else {
-            sortField = field;
-            sortDirection = 'asc';
+            throw new Error('Failed to load accounts data');
         }
-    }
-    
-    filteredAccounts.sort((a, b) => {
-        let aValue = a[sortField];
-        let bValue = b[sortField];
+    } catch (error) {
+        console.error('Error loading accounts:', error);
+        showError('Failed to load accounts: ' + error.message);
         
-        if (sortField === 'name' || sortField === 'email' || sortField === 'role') {
-            aValue = a[sortField].toLowerCase();
-            bValue = b[sortField].toLowerCase();
-        } else if (sortField === 'lastLogin') {
-            aValue = new Date(a.lastLogin);
-            bValue = new Date(b.lastLogin);
-        }
-        
-        if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-        if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
-        return 0;
-    });
-    
-    // Update sort indicators
-    const sortableHeaders = document.querySelectorAll('th[data-sort]');
-    if (sortableHeaders.length > 0) {
-        sortableHeaders.forEach(th => {
-            const indicator = th.querySelector('.sort-indicator');
-            if (th.getAttribute('data-sort') === sortField) {
-                if (!indicator) {
-                    const newIndicator = document.createElement('span');
-                    newIndicator.className = 'sort-indicator';
-                    th.appendChild(newIndicator);
-                }
-                th.querySelector('.sort-indicator').textContent = sortDirection === 'asc' ? '↑' : '↓';
-            } else {
-                if (indicator) indicator.textContent = '';
-            }
-        });
+        // Show empty state
+        allAccounts = [];
+        filteredAccounts = [];
+        updateStats();
+        renderTable();
+    } finally {
+        hideLoadingState();
     }
-    
-    renderTable();
 }
 
 // Filter accounts based on filters
 function filterAccounts() {
-    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
-    const role = roleFilter ? roleFilter.value : 'all';
-    const status = statusFilter ? statusFilter.value : 'all';
-    
-    filteredAccounts = accountsData.filter(account => {
-        // Search filter
-        const matchesSearch = 
-            account.name.toLowerCase().includes(searchTerm) ||
-            account.email.toLowerCase().includes(searchTerm);
-        
-        // Role filter
-        const matchesRole = role === 'all' || account.role === role;
-        
-        // Status filter
-        const matchesStatus = status === 'all' || account.status === status;
-        
-        return matchesSearch && matchesRole && matchesStatus;
-    });
-    
     currentPage = 1;
-    sortAccounts();
-    updateStats();
+    loadAccounts();
+}
+
+// Get full name from first and last name
+function getFullName(account) {
+    const firstName = account.first_name || '';
+    const lastName = account.last_name || '';
+    return `${firstName} ${lastName}`.trim() || 'Unknown User';
 }
 
 // Get role badge
@@ -240,6 +274,7 @@ function getRoleBadge(role) {
     } else if (role === 'guest') {
         return `<span class="role-badge role-guest">Guest</span>`;
     }
+    return `<span class="role-badge">${role}</span>`;
 }
 
 // Get status badge
@@ -251,57 +286,90 @@ function getStatusBadge(status) {
     } else if (status === 'banned') {
         return `<span class="status-badge status-banned">Banned</span>`;
     }
+    return `<span class="status-badge">${status}</span>`;
+}
+
+// Format date for display
+function formatDate(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    });
+}
+
+// Format phone number for display
+function formatPhoneNumber(phone) {
+    if (!phone) return '-';
+    return phone;
+}
+
+// Format address for display
+function formatAddress(address) {
+    if (!address) return '-';
+    return address.length > 30 ? address.substring(0, 30) + '...' : address;
 }
 
 // Render the table with current data
-function renderTable() {
+function renderTable(paginationData = null) {
     if (!accountsTableBody) {
         console.error('Table body element not found');
         return;
     }
     
-    // Calculate pagination
-    const totalPages = Math.ceil(filteredAccounts.length / recordsPerPage);
-    const startIndex = (currentPage - 1) * recordsPerPage;
-    const endIndex = Math.min(startIndex + recordsPerPage, filteredAccounts.length);
-    const currentAccounts = filteredAccounts.slice(startIndex, endIndex);
-    
-    // Update showing records info
-    if (showingFrom) showingFrom.textContent = filteredAccounts.length > 0 ? startIndex + 1 : 0;
-    if (showingTo) showingTo.textContent = endIndex;
-    if (totalRecords) totalRecords.textContent = filteredAccounts.length;
-    
     // Clear table body
     accountsTableBody.innerHTML = '';
     
     // Check if there are accounts to display
-    if (currentAccounts.length === 0) {
+    if (!filteredAccounts || filteredAccounts.length === 0) {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td colspan="6" class="text-center py-8 text-gray-500">
                 <i class="fas fa-users text-4xl mb-4 block"></i>
-                No accounts found matching your criteria
+                No accounts found
             </td>
         `;
         accountsTableBody.appendChild(row);
+        
+        // Update showing records info
+        updateShowingInfo(0, paginationData);
         return;
     }
     
-    // Populate table rows with AOS animations
-    currentAccounts.forEach((account, index) => {
+    // Populate table rows
+    filteredAccounts.forEach((account, index) => {
         const row = document.createElement('tr');
-        row.setAttribute('data-aos', 'fade-up');
-        row.setAttribute('data-aos-delay', (index % 10) * 50);
+        const fullName = getFullName(account);
+        const email = account.email_address || 'No email';
+        const role = account.role || 'guest';
+        const status = account.status || 'active';
+        const lastLogin = account.last_login || account.updated_at;
+        const userId = account.user_id; // Get the user_id from account data
         
         row.innerHTML = `
-            <td class="font-medium">${account.name}</td>
-            <td>${account.email}</td>
-            <td>${getRoleBadge(account.role)}</td>
-            <td>${getStatusBadge(account.status)}</td>
-            <td>${account.lastLogin}</td>
+            <td class="font-medium">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center overflow-hidden">
+                        ${account.profile ? 
+                            `<img src="${account.profile}" alt="${fullName}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.parentNode.innerHTML='<i class=\\'fas fa-user text-white text-sm\\'></i>';" />` :
+                            `<i class="fas fa-user text-white text-sm"></i>`
+                        }
+                    </div>
+                    <div>
+                        <div class="font-medium text-gray-900">${fullName}</div>
+                        <div class="text-sm text-gray-500">${formatPhoneNumber(account.phone_number)}</div>
+                    </div>
+                </div>
+            </td>
+            <td>${email}</td>
+            <td>${getRoleBadge(role)}</td>
+            <td>${getStatusBadge(status)}</td>
+            <td>${formatDate(lastLogin)}</td>
             <td>
                 <div class="action-buttons">
-                    <button class="manage-account btn-primary text-sm" data-id="${account.id}">
+                    <button class="manage-account btn-primary text-sm" data-user-id="${userId}" data-email="${email}">
                         <i class="fas fa-user-cog mr-1"></i> Manage
                     </button>
                 </div>
@@ -313,13 +381,15 @@ function renderTable() {
     // Add event listeners to action buttons
     document.querySelectorAll('.manage-account').forEach(button => {
         button.addEventListener('click', function() {
-            const accountId = this.getAttribute('data-id');
-            openManageAccountModal(accountId);
+            const userId = this.getAttribute('data-user-id');
+            const email = this.getAttribute('data-email');
+            openManageAccountModal(userId, email);
         });
     });
     
-    // Render pagination
-    renderPagination(totalPages);
+    // Update showing info and pagination
+    updateShowingInfo(paginationData);
+    renderPagination(paginationData);
     
     // Reinitialize AOS for new elements
     if (typeof AOS !== 'undefined') {
@@ -327,69 +397,96 @@ function renderTable() {
     }
 }
 
+// Update showing records info
+function updateShowingInfo(paginationData) {
+    if (!paginationData) {
+        if (showingFrom) showingFrom.textContent = '0';
+        if (showingTo) showingTo.textContent = '0';
+        if (totalRecords) totalRecords.textContent = '0';
+        return;
+    }
+    
+    const startIndex = (paginationData.current_page - 1) * paginationData.per_page + 1;
+    const endIndex = Math.min(startIndex + filteredAccounts.length - 1, paginationData.total_items);
+    
+    if (showingFrom) showingFrom.textContent = filteredAccounts.length > 0 ? startIndex : '0';
+    if (showingTo) showingTo.textContent = endIndex;
+    if (totalRecords) totalRecords.textContent = paginationData.total_items;
+}
+
 // Render pagination controls
-function renderPagination(totalPages) {
+function renderPagination(paginationData) {
     if (!pagination) return;
     
     pagination.innerHTML = '';
     
-    if (totalPages <= 1) return;
+    if (!paginationData || paginationData.total_pages <= 1) {
+        return;
+    }
     
     // Previous button
     const prevButton = document.createElement('button');
-    prevButton.className = `page-btn ${currentPage === 1 ? 'disabled' : ''}`;
+    prevButton.className = `page-btn ${!paginationData.has_prev ? 'disabled' : ''}`;
     prevButton.innerHTML = '<i class="fas fa-chevron-left"></i>';
-    prevButton.disabled = currentPage === 1;
+    prevButton.disabled = !paginationData.has_prev;
     prevButton.addEventListener('click', () => {
-        if (currentPage > 1) {
-            currentPage--;
-            renderTable();
+        if (paginationData.has_prev) {
+            currentPage = paginationData.current_page - 1;
+            loadAccounts();
         }
     });
     pagination.appendChild(prevButton);
     
     // Page buttons
-    for (let i = 1; i <= totalPages; i++) {
+    for (let i = 1; i <= paginationData.total_pages; i++) {
         const pageButton = document.createElement('button');
-        pageButton.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+        pageButton.className = `page-btn ${i === paginationData.current_page ? 'active' : ''}`;
         pageButton.textContent = i;
         pageButton.addEventListener('click', () => {
             currentPage = i;
-            renderTable();
+            loadAccounts();
         });
         pagination.appendChild(pageButton);
     }
     
     // Next button
     const nextButton = document.createElement('button');
-    nextButton.className = `page-btn ${currentPage === totalPages ? 'disabled' : ''}`;
+    nextButton.className = `page-btn ${!paginationData.has_next ? 'disabled' : ''}`;
     nextButton.innerHTML = '<i class="fas fa-chevron-right"></i>';
-    nextButton.disabled = currentPage === totalPages;
+    nextButton.disabled = !paginationData.has_next;
     nextButton.addEventListener('click', () => {
-        if (currentPage < totalPages) {
-            currentPage++;
-            renderTable();
+        if (paginationData.has_next) {
+            currentPage = paginationData.current_page + 1;
+            loadAccounts();
         }
     });
     pagination.appendChild(nextButton);
 }
 
 // Open manage account modal
-function openManageAccountModal(accountId) {
-    const account = accountsData.find(a => a.id === accountId);
-    if (!account) return;
-    
-    if (modalTitle) modalTitle.textContent = 'Manage Account';
-    if (accountForm) {
-        document.getElementById('accountId').value = account.id;
-        document.getElementById('name').value = account.name;
-        document.getElementById('email').value = account.email;
-        document.getElementById('role').value = account.role;
-        document.getElementById('status').value = account.status;
+function openManageAccountModal(userId, email) {
+    try {
+        // Find account in current data using user_id
+        const account = allAccounts.find(a => a.user_id === userId);
+        if (!account) {
+            throw new Error('Account not found');
+        }
+        
+        if (modalTitle) modalTitle.textContent = 'Manage Account';
+        if (accountForm) {
+            document.getElementById('accountId').value = userId; // Store user_id, not email
+            document.getElementById('name').value = getFullName(account);
+            document.getElementById('email').value = account.email_address;
+            document.getElementById('role').value = account.role || 'guest';
+            document.getElementById('status').value = account.status || 'active';
+        }
+        
+        // Show modal
+        if (accountModal) accountModal.classList.add('active');
+    } catch (error) {
+        console.error('Error opening manage modal:', error);
+        showError('Failed to load account: ' + error.message);
     }
-    
-    // Show modal
-    if (accountModal) accountModal.classList.add('active');
 }
 
 // Close account modal
@@ -400,26 +497,40 @@ function closeAccountModal() {
 }
 
 // Save account changes
-function saveAccount(event) {
+async function saveAccount(event) {
     event.preventDefault();
     
-    // Get form data
-    const id = document.getElementById('accountId').value;
-    const role = document.getElementById('role').value;
-    const status = document.getElementById('status').value;
-    
-    // Update account
-    const index = accountsData.findIndex(a => a.id === id);
-    if (index !== -1) {
-        accountsData[index].role = role;
-        accountsData[index].status = status;
+    try {
+        showLoadingState('Saving changes...');
         
-        // Update UI
-        filterAccounts();
-        closeAccountModal();
+        // Get form data - accountId now contains the user_id
+        const userId = document.getElementById('accountId').value;
+        const role = document.getElementById('role').value;
+        const status = document.getElementById('status').value;
         
-        // Show success message
-        alert('Account updated successfully!');
+        const accountData = {
+            user_id: userId, // Use the actual user_id from the account data
+            role: role,
+            status: status
+        };
+        
+        const data = await makeApiRequest(ENDPOINT_URL, {
+            method: 'PUT',
+            body: accountData
+        });
+        
+        if (data && data.success) {
+            showSuccess('Account updated successfully!');
+            closeAccountModal();
+            await loadAccounts(); // Reload accounts list
+        } else {
+            throw new Error('Failed to update account');
+        }
+    } catch (error) {
+        console.error('Error updating account:', error);
+        showError('Failed to update account: ' + error.message);
+    } finally {
+        hideLoadingState();
     }
 }
 
@@ -438,4 +549,48 @@ function updateStats() {
     if (document.getElementById('restrictedAccounts')) {
         document.getElementById('restrictedAccounts').textContent = restricted;
     }
+}
+
+// UI Helper Functions
+function showLoadingState(message = 'Loading...') {
+    const submitBtn = accountForm?.querySelector('button[type="submit"]');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + message;
+    }
+}
+
+function hideLoadingState() {
+    const submitBtn = accountForm?.querySelector('button[type="submit"]');
+    if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Save Changes';
+    }
+}
+
+// SweetAlert 2 functions
+function showSuccess(message) {
+    Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: message,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+    });
+}
+
+function showError(message) {
+    Swal.fire({
+        icon: 'error',
+        title: 'Error!',
+        text: message,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 5000,
+        timerProgressBar: true,
+    });
 }

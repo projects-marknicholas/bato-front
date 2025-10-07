@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Resources - BatoSpring Resort</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
@@ -295,7 +297,13 @@
                     
                     <div class="form-group mt-6">
                         <label class="form-label">Resource Images</label>
-                        <input type="file" id="resourceImages" class="form-input" multiple accept="image/*">
+                        <div class="flex gap-2 mb-2">
+                            <input type="text" id="imageUrlInput" class="form-input flex-1" placeholder="Enter image URL (e.g., https://example.com/image.jpg)">
+                            <button type="button" id="addImageBtn" class="btn-secondary">
+                                <i class="fas fa-plus mr-2"></i> Add Image
+                            </button>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-2">Enter image URLs to add them as resource images</p>
                         <div class="image-preview" id="imagePreview"></div>
                     </div>
                     
@@ -342,7 +350,8 @@
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    
+    <script src="../js/config.js"></script>
+    <script src="../js/user-header.js"></script>
     <script src="js/resources-script.js"></script>
 </body>
 </html>

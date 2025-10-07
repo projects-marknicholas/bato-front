@@ -1,6 +1,17 @@
 // Google Start
 function handleCredentialResponse(response) {
   const idToken = response.credential;
+  
+  Swal.fire({
+    title: 'Logging in...',
+    text: 'Please wait while we authenticate your account',
+    allowOutsideClick: false,
+    allowEscapeKey: false,
+    allowEnterKey: false,
+    didOpen: () => {
+      Swal.showLoading();
+    }
+  });
 
   fetch(`${window.CONFIG.API_BASE_URL}${window.CONFIG.ENDPOINTS.GOOGLE_CALLBACK}`, {
     method: "POST",
@@ -11,12 +22,36 @@ function handleCredentialResponse(response) {
   .then(data => {
     if (data.success) {
       localStorage.setItem("user", JSON.stringify(data.user));
-      alert("Google login successful!");
+      Swal.fire({
+        title: 'Success!',
+        text: 'Google login successful!',
+        icon: 'success',
+        confirmButtonText: 'Continue',
+        confirmButtonColor: '#16a34a'
+      }).then(() => {
+        window.location.href = `/${data.user.role}/dashboard.html`;
+        console.log('User Data: ', data.user);
+      });
     } else {
-      alert("Google login failed: " + (data.error || "Unknown error"));
+      Swal.fire({
+        title: 'Login Failed',
+        text: data.error || 'Unknown error occurred during login',
+        icon: 'error',
+        confirmButtonText: 'Try Again',
+        confirmButtonColor: '#dc2626'
+      });
     }
   })
-  .catch(err => console.error("Error:", err));
+  .catch(err => {
+    console.error("Error:", err);
+    Swal.fire({
+      title: 'Connection Error',
+      text: 'Unable to connect to the server. Please check your internet connection and try again.',
+      icon: 'error',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#dc2626'
+    });
+  });
 }
 // Google End
 
@@ -51,8 +86,33 @@ function toggleMobileMenu() {
 }
 
 function handleBookingClick() {
-  alert("Please sign in with Google first to make a booking. This ensures secure reservations and account management.")
-  signInWithGoogle()
+  Swal.fire({
+    title: 'Sign In Required',
+    text: 'Please sign in with Google first to make a booking. This ensures secure reservations and account management.',
+    icon: 'info',
+    showCancelButton: true,
+    confirmButtonText: 'Sign In with Google',
+    cancelButtonText: 'Cancel',
+    confirmButtonColor: '#16a34a',
+    cancelButtonColor: '#6b7280'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      // Trigger Google Sign In
+      const googleSignInButton = document.querySelector('.g_id_signin');
+      if (googleSignInButton) {
+        googleSignInButton.click();
+      } else {
+        // Fallback if button not found
+        Swal.fire({
+          title: 'Sign In',
+          text: 'Please use the Google Sign In button in the navigation menu.',
+          icon: 'info',
+          confirmButtonText: 'OK',
+          confirmButtonColor: '#16a34a'
+        });
+      }
+    }
+  });
 }
 
 document.addEventListener("DOMContentLoaded", () => {

@@ -5,173 +5,17 @@ AOS.init({
     once: true,
 });
 
-// Sample guest data with ranking based on visits
-const guestsData = [
-    {
-        id: "G001",
-        name: "Carlos Mendoza",
-        email: "carlos.mendoza@email.com",
-        phone: "+63 912 345 6789",
-        visits: 15,
-        lastVisit: "2024-01-15",
-        totalSpent: 125000,
-        status: "vip",
-        joinDate: "2022-03-10",
-        preferences: "Prefers pool view rooms, vegetarian meals",
-        notes: "Very satisfied customer, always leaves positive reviews"
-    },
-    {
-        id: "G002",
-        name: "Lisa Garcia",
-        email: "lisa.garcia@email.com",
-        phone: "+63 917 654 3210",
-        visits: 12,
-        lastVisit: "2024-01-12",
-        totalSpent: 98000,
-        status: "vip",
-        joinDate: "2022-05-22",
-        preferences: "Family cottage, extra bed for child",
-        notes: "Celebrates anniversary every year at the resort"
-    },
-    {
-        id: "G003",
-        name: "Roberto Silva",
-        email: "roberto.silva@email.com",
-        phone: "+63 918 765 4321",
-        visits: 10,
-        lastVisit: "2024-01-08",
-        totalSpent: 75000,
-        status: "vip",
-        joinDate: "2022-07-15",
-        preferences: "Bamboo hut, early check-in",
-        notes: "Business traveler, often books for clients"
-    },
-    {
-        id: "G004",
-        name: "Elena Reyes",
-        email: "elena.reyes@email.com",
-        phone: "+63 919 876 5432",
-        visits: 8,
-        lastVisit: "2023-12-20",
-        totalSpent: 62000,
-        status: "vip",
-        joinDate: "2022-09-05",
-        preferences: "Quiet area, spa services",
-        notes: "Yoga instructor, often brings groups"
-    },
-    {
-        id: "G005",
-        name: "Miguel Torres",
-        email: "miguel.torres@email.com",
-        phone: "+63 920 987 6543",
-        visits: 7,
-        lastVisit: "2023-12-15",
-        totalSpent: 58000,
-        status: "regular",
-        joinDate: "2023-01-10",
-        preferences: "Pool villa, family activities",
-        notes: "Large family, always books during school holidays"
-    },
-    {
-        id: "G006",
-        name: "Sofia Hernandez",
-        email: "sofia.hernandez@email.com",
-        phone: "+63 921 098 7654",
-        visits: 6,
-        lastVisit: "2023-11-28",
-        totalSpent: 45000,
-        status: "regular",
-        joinDate: "2023-02-15",
-        preferences: "Honeymoon suite, romantic dinners",
-        notes: "Newlywed, very particular about room decorations"
-    },
-    {
-        id: "G007",
-        name: "David Lim",
-        email: "david.lim@email.com",
-        phone: "+63 922 109 8765",
-        visits: 5,
-        lastVisit: "2023-11-15",
-        totalSpent: 38000,
-        status: "regular",
-        joinDate: "2023-03-20",
-        preferences: "Deluxe room, business center access",
-        notes: "Frequent business traveler, prefers quiet floors"
-    },
-    {
-        id: "G008",
-        name: "Maria Santos",
-        email: "maria.santos@email.com",
-        phone: "+63 923 210 9876",
-        visits: 4,
-        lastVisit: "2023-10-30",
-        totalSpent: 32000,
-        status: "regular",
-        joinDate: "2023-04-05",
-        preferences: "Ground floor rooms, accessibility features",
-        notes: "Elderly guest, requires special assistance"
-    },
-    {
-        id: "G009",
-        name: "Juan Dela Cruz",
-        email: "juan.delacruz@email.com",
-        phone: "+63 924 321 0987",
-        visits: 3,
-        lastVisit: "2023-10-15",
-        totalSpent: 24000,
-        status: "regular",
-        joinDate: "2023-05-12",
-        preferences: "Adventure activities, guided tours",
-        notes: "Adventure seeker, always tries new activities"
-    },
-    {
-        id: "G010",
-        name: "Ana Rodriguez",
-        email: "ana.rodriguez@email.com",
-        phone: "+63 925 432 1098",
-        visits: 2,
-        lastVisit: "2023-09-28",
-        totalSpent: 18000,
-        status: "new",
-        joinDate: "2023-06-18",
-        preferences: "Spa treatments, wellness activities",
-        notes: "Health-conscious, prefers organic meals"
-    },
-    {
-        id: "G011",
-        name: "James Wilson",
-        email: "james.wilson@email.com",
-        phone: "+63 926 543 2109",
-        visits: 2,
-        lastVisit: "2023-09-10",
-        totalSpent: 16000,
-        status: "new",
-        joinDate: "2023-07-22",
-        preferences: "Golf course access, sports facilities",
-        notes: "Golf enthusiast, often brings business partners"
-    },
-    {
-        id: "G012",
-        name: "Sarah Johnson",
-        email: "sarah.johnson@email.com",
-        phone: "+63 927 654 3210",
-        visits: 1,
-        lastVisit: "2023-08-25",
-        totalSpent: 8000,
-        status: "new",
-        joinDate: "2023-08-01",
-        preferences: "Beachfront rooms, water sports",
-        notes: "First-time visitor, very impressed with service"
-    }
-];
+// API Configuration
+const API_BASE_URL = window.CONFIG.API_BASE_URL;
+const ENDPOINT_URL = window.CONFIG.ENDPOINTS.ADMIN_GUESTS;
 
 // Global variables
 let currentPage = 1;
 const recordsPerPage = 10;
+let allGuests = [];
 let filteredGuests = [];
 let sortField = 'visits';
 let sortDirection = 'desc';
-let sortedGuestsByVisits = [];
 
 // DOM Elements
 const sidebarToggle = document.getElementById('sidebarToggle');
@@ -192,16 +36,8 @@ const exportBtn = document.getElementById('exportBtn');
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize data
-    sortedGuestsByVisits = [...guestsData].sort((a, b) => b.visits - a.visits);
-    filteredGuests = [...guestsData];
-    
-    updateStats();
-    sortGuests();
-    renderTable();
+    initializeApp();
     setupEventListeners();
-    
-    console.log('Page initialized with', guestsData.length, 'guests');
 });
 
 // Set up event listeners
@@ -223,17 +59,6 @@ function setupEventListeners() {
     }
     if (visitsFilter) {
         visitsFilter.addEventListener('change', filterGuests);
-    }
-    
-    // Sorting
-    const sortableHeaders = document.querySelectorAll('th[data-sort]');
-    if (sortableHeaders.length > 0) {
-        sortableHeaders.forEach(th => {
-            th.addEventListener('click', function() {
-                const field = this.getAttribute('data-sort');
-                sortGuests(field);
-            });
-        });
     }
     
     // Modal
@@ -259,191 +84,279 @@ function setupEventListeners() {
 // Toggle sidebar on mobile
 function toggleSidebar() {
     if (sidebar && sidebarOverlay) {
-        sidebar.classList.toggle('-translate-x-full');
+        sidebar.classList.toggle('active');
         sidebarOverlay.classList.toggle('active');
     }
 }
 
-// Sort guests by specified field
-function sortGuests(field = null) {
-    if (field) {
-        if (sortField === field) {
-            // Toggle direction if same field
-            sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+// Initialize application
+async function initializeApp() {
+    if (!checkAuthentication()) {
+        return;
+    }
+    
+    try {
+        await loadGuests();
+    } catch (error) {
+        console.error('Failed to initialize app:', error);
+        showError('Failed to load guests data');
+    }
+}
+
+// Check if user is authenticated
+function checkAuthentication() {
+    const apiKey = getApiKey();
+    const csrfToken = getCsrfToken();
+    
+    if (!apiKey || !csrfToken) {
+        window.location.href = '../index.html';
+        return false;
+    }
+    return true;
+}
+
+// Get API key from localStorage
+function getApiKey() {
+    try {
+        const userData = localStorage.getItem('user');
+        if (userData) {
+            const user = JSON.parse(userData);
+            return user.api_key || null;
+        }
+    } catch (error) {
+        console.error('Error parsing user data from localStorage:', error);
+    }
+    return null;
+}
+
+// Get CSRF token from localStorage
+function getCsrfToken() {
+    try {
+        const userData = localStorage.getItem('user');
+        if (userData) {
+            const user = JSON.parse(userData);
+            return user.csrf_token || null;
+        }
+    } catch (error) {
+        console.error('Error parsing user data from localStorage:', error);
+    }
+    return null;
+}
+
+// API request helper
+async function makeApiRequest(endpoint, options = {}) {
+    const apiKey = getApiKey();
+    const csrfToken = getCsrfToken();
+
+    if (!apiKey) {
+        throw new Error('API key not found. Please sign in again.');
+    }
+
+    if (!csrfToken) {
+        throw new Error('CSRF token not found. Please sign in again.');
+    }
+
+    const defaultOptions = {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+            'X-CSRF-Token': csrfToken,
+        },
+    };
+
+    const config = {
+        ...defaultOptions,
+        ...options,
+        headers: {
+            ...defaultOptions.headers,
+            ...options.headers,
+        },
+    };
+
+    // If body is provided and it's an object, stringify it
+    if (config.body && typeof config.body === 'object') {
+        config.body = JSON.stringify(config.body);
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+        
+        if (response.status === 401) {
+            localStorage.removeItem('user');
+            window.location.href = '../index.html';
+            return;
+        }
+
+        if (response.status === 429) {
+            throw new Error('Rate limit exceeded. Please try again later.');
+        }
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        }
+
+        return response.json();
+    } catch (error) {
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            throw new Error('Network error: Unable to connect to server');
+        }
+        throw error;
+    }
+}
+
+// Load guests from backend
+async function loadGuests() {
+    try {
+        showLoadingState('Loading guests...');
+        
+        // Build query parameters
+        const params = new URLSearchParams();
+        params.append('page', currentPage);
+        params.append('limit', recordsPerPage);
+        
+        if (searchInput && searchInput.value) {
+            params.append('search', searchInput.value);
+        }
+        
+        const data = await makeApiRequest(`${ENDPOINT_URL}?${params.toString()}`);
+        
+        if (data && data.success) {
+            allGuests = data.data || [];
+            filteredGuests = [...allGuests];
+            
+            updateStats();
+            renderTable(data.pagination);
         } else {
-            // New field, default to descending for visits/rank, ascending for others
-            sortField = field;
-            sortDirection = (field === 'visits' || field === 'rank' || field === 'totalSpent') ? 'desc' : 'asc';
+            throw new Error('Failed to load guests data');
         }
+    } catch (error) {
+        console.error('Error loading guests:', error);
+        showError('Failed to load guests: ' + error.message);
+        
+        // Show empty state
+        allGuests = [];
+        filteredGuests = [];
+        updateStats();
+        renderTable();
+    } finally {
+        hideLoadingState();
     }
-    
-    filteredGuests.sort((a, b) => {
-        let aValue = a[sortField];
-        let bValue = b[sortField];
-        
-        // Special handling for rank (which is based on visits)
-        if (sortField === 'rank') {
-            aValue = a.visits;
-            bValue = b.visits;
-        }
-        
-        if (sortField === 'name') {
-            aValue = a.name.toLowerCase();
-            bValue = b.name.toLowerCase();
-        }
-        
-        if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-        if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
-        return 0;
-    });
-    
-    // Update sort indicators
-    const sortableHeaders = document.querySelectorAll('th[data-sort]');
-    if (sortableHeaders.length > 0) {
-        sortableHeaders.forEach(th => {
-            const indicator = th.querySelector('.sort-indicator');
-            if (th.getAttribute('data-sort') === sortField) {
-                indicator.textContent = sortDirection === 'asc' ? '↑' : '↓';
-            } else {
-                if (indicator) indicator.textContent = '';
-            }
-        });
-    }
-    
-    renderTable();
 }
 
 // Filter guests based on filters
 function filterGuests() {
-    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
-    const status = statusFilter ? statusFilter.value : 'all';
-    const visits = visitsFilter ? visitsFilter.value : 'all';
-    
-    filteredGuests = guestsData.filter(guest => {
-        // Search filter
-        const matchesSearch = 
-            guest.name.toLowerCase().includes(searchTerm) ||
-            guest.email.toLowerCase().includes(searchTerm) ||
-            guest.phone.toLowerCase().includes(searchTerm);
-        
-        // Status filter
-        let matchesStatus = true;
-        if (status === 'current') {
-            // For demo purposes, we'll consider guests who visited in the last 30 days as current
-            const lastVisit = new Date(guest.lastVisit);
-            const thirtyDaysAgo = new Date();
-            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-            matchesStatus = lastVisit >= thirtyDaysAgo;
-        } else if (status === 'vip') {
-            matchesStatus = guest.status === 'vip';
-        } else if (status === 'new') {
-            matchesStatus = guest.visits <= 2;
-        }
-        
-        // Visits filter
-        let matchesVisits = true;
-        if (visits === '10plus') {
-            matchesVisits = guest.visits >= 10;
-        } else if (visits === '5-10') {
-            matchesVisits = guest.visits >= 5 && guest.visits <= 10;
-        } else if (visits === '1-5') {
-            matchesVisits = guest.visits >= 1 && guest.visits <= 5;
-        }
-        
-        return matchesSearch && matchesStatus && matchesVisits;
-    });
-    
     currentPage = 1;
-    sortGuests();
-    updateStats();
+    loadGuests();
 }
 
-// Get ranking badge based on global rank (by visits)
-function getRankingBadge(guest) {
-    // Find the global rank based on visits
-    const globalRank = sortedGuestsByVisits.findIndex(g => g.id === guest.id) + 1;
-    
-    if (globalRank === 1) {
-        return `<span class="ranking-badge ranking-1">${globalRank}</span>`;
-    } else if (globalRank === 2) {
-        return `<span class="ranking-badge ranking-2">${globalRank}</span>`;
-    } else if (globalRank === 3) {
-        return `<span class="ranking-badge ranking-3">${globalRank}</span>`;
-    } else if (globalRank <= 10) {
-        return `<span class="ranking-badge ranking-4-10">${globalRank}</span>`;
-    } else {
-        return `<span class="ranking-badge ranking-other">${globalRank}</span>`;
+// Get ranking badge based on rank number
+function getRankingBadge(rank) {
+  switch (rank) {
+    case 1:
+      return `<span class="px-2 py-1 rounded-full text-xs font-semibold bg-yellow-500 text-white">🥇 Gold</span>`;
+    case 2:
+      return `<span class="px-2 py-1 rounded-full text-xs font-semibold bg-gray-400 text-white">🥈 Silver</span>`;
+    case 3:
+      return `<span class="px-2 py-1 rounded-full text-xs font-semibold bg-orange-600 text-white">🥉 Bronze</span>`;
+    default:
+      return `<span class="px-2 py-1 rounded-full text-xs font-semibold bg-gray-500 text-white">Unranked</span>`;
+  }
+}
+
+// Format currency for display
+function formatCurrency(amount) {
+    return `₱${parseFloat(amount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+// Format date for display
+function formatDate(dateString) {
+    if (!dateString) return '-';
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+    } catch (e) {
+        return dateString;
     }
 }
 
+// Get initials from name
+function getInitials(name) {
+    if (!name) return '?';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+}
+
 // Render the table with current data
-function renderTable() {
+function renderTable(paginationData = null) {
     if (!guestsTableBody) {
         console.error('Table body element not found');
         return;
     }
     
-    // Calculate pagination
-    const totalPages = Math.ceil(filteredGuests.length / recordsPerPage);
-    const startIndex = (currentPage - 1) * recordsPerPage;
-    const endIndex = Math.min(startIndex + recordsPerPage, filteredGuests.length);
-    const currentGuests = filteredGuests.slice(startIndex, endIndex);
-    
-    // Update showing records info
-    if (showingFrom) showingFrom.textContent = filteredGuests.length > 0 ? startIndex + 1 : 0;
-    if (showingTo) showingTo.textContent = endIndex;
-    if (totalRecords) totalRecords.textContent = filteredGuests.length;
-    
     // Clear table body
     guestsTableBody.innerHTML = '';
     
     // Check if there are guests to display
-    if (currentGuests.length === 0) {
+    if (!filteredGuests || filteredGuests.length === 0) {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td colspan="8" class="text-center py-8 text-gray-500">
                 <i class="fas fa-users-slash text-4xl mb-4 block"></i>
-                No guests found matching your criteria
+                No guests found
             </td>
         `;
         guestsTableBody.appendChild(row);
+        
+        // Update showing records info
+        updateShowingInfo(0, paginationData);
         return;
     }
     
-    // Populate table rows with AOS animations
-    currentGuests.forEach((guest, index) => {
+    // Populate table rows
+    filteredGuests.forEach((guest, index) => {
         const row = document.createElement('tr');
-        row.setAttribute('data-aos', 'fade-up');
-        row.setAttribute('data-aos-delay', (index % 10) * 50);
+        const firstName = guest.first_name || '';
+        const lastName = guest.last_name || '';
+        const fullName = `${firstName} ${lastName}`.trim() || 'Unknown Guest';
+        const email = guest.email_address || 'No email';
+        const phone = guest.phone_number || 'No phone';
+        const visits = guest.total_visits || 0;
+        const lastVisit = guest.last_visit || guest.created_at;
+        const totalSpent = guest.total_spent || 0;
+        const rank = guest.rank || 0;
         
         row.innerHTML = `
-            <td class="font-medium">${getRankingBadge(guest)}</td>
+            <td class="font-medium">${getRankingBadge(rank)}</td>
             <td>
                 <div class="flex items-center">
                     <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mr-3">
-                        <span class="text-white font-semibold text-sm">${guest.name.split(' ').map(n => n[0]).join('')}</span>
+                        <span class="text-white font-semibold text-sm">${getInitials(fullName)}</span>
                     </div>
                     <div>
-                        <div class="font-medium">${guest.name}</div>
-                        <div class="text-xs text-gray-500">${guest.status.toUpperCase()} Guest</div>
+                        <div class="font-medium">${fullName}</div>
+                        <div class="text-xs text-gray-500">${visits >= 10 ? 'VIP' : visits >= 5 ? 'Regular' : 'New'} Guest</div>
                     </div>
                 </div>
             </td>
-            <td>${guest.email}</td>
-            <td>${guest.phone}</td>
+            <td>${email}</td>
+            <td>${phone}</td>
             <td>
                 <span class="visits-count">
-                    <i class="fas fa-calendar-day mr-1"></i> ${guest.visits}
+                    <i class="fas fa-calendar-day mr-1"></i> ${visits}
                 </span>
             </td>
-            <td>${formatDate(guest.lastVisit)}</td>
-            <td class="font-semibold">₱${guest.totalSpent.toLocaleString()}</td>
+            <td>${formatDate(lastVisit)}</td>
+            <td class="font-semibold">${formatCurrency(totalSpent)}</td>
             <td>
                 <div class="action-buttons">
-                    <button class="view-details btn-primary text-sm" data-id="${guest.id}">
+                    <button class="view-details btn-primary text-sm" data-guest='${JSON.stringify(guest).replace(/'/g, "&apos;")}'>
                         <i class="fas fa-eye mr-1"></i> View
                     </button>
-                    <button class="send-msg btn-secondary text-sm" data-id="${guest.id}">
+                    <button class="send-msg btn-secondary text-sm" data-email="${email}">
                         <i class="fas fa-envelope mr-1"></i> Message
                     </button>
                 </div>
@@ -455,20 +368,21 @@ function renderTable() {
     // Add event listeners to action buttons
     document.querySelectorAll('.view-details').forEach(button => {
         button.addEventListener('click', function() {
-            const guestId = this.getAttribute('data-id');
-            showGuestDetails(guestId);
+            const guestData = JSON.parse(this.getAttribute('data-guest'));
+            showGuestDetails(guestData);
         });
     });
     
     document.querySelectorAll('.send-msg').forEach(button => {
         button.addEventListener('click', function() {
-            const guestId = this.getAttribute('data-id');
-            alert(`Message feature would open for guest ${guestId}`);
+            const email = this.getAttribute('data-email');
+            showMessageModal(email);
         });
     });
     
-    // Render pagination
-    renderPagination(totalPages);
+    // Update showing info and pagination
+    updateShowingInfo(filteredGuests.length, paginationData);
+    renderPagination(paginationData);
     
     // Reinitialize AOS for new elements
     if (typeof AOS !== 'undefined') {
@@ -476,101 +390,117 @@ function renderTable() {
     }
 }
 
+// Update showing records info
+function updateShowingInfo(currentItemsCount, paginationData) {
+    if (!paginationData) {
+        if (showingFrom) showingFrom.textContent = currentItemsCount > 0 ? '1' : '0';
+        if (showingTo) showingTo.textContent = currentItemsCount;
+        if (totalRecords) totalRecords.textContent = currentItemsCount;
+        return;
+    }
+    
+    const startIndex = (paginationData.current_page - 1) * paginationData.per_page + 1;
+    const endIndex = Math.min(startIndex + currentItemsCount - 1, paginationData.total_items);
+    
+    if (showingFrom) showingFrom.textContent = startIndex;
+    if (showingTo) showingTo.textContent = endIndex;
+    if (totalRecords) totalRecords.textContent = paginationData.total_items;
+}
+
 // Render pagination controls
-function renderPagination(totalPages) {
+function renderPagination(paginationData) {
     if (!pagination) return;
     
     pagination.innerHTML = '';
     
-    if (totalPages <= 1) return;
+    if (!paginationData || paginationData.total_pages <= 1) {
+        return;
+    }
     
     // Previous button
     const prevButton = document.createElement('button');
-    prevButton.className = `page-btn ${currentPage === 1 ? 'disabled' : ''}`;
+    prevButton.className = `page-btn ${!paginationData.has_prev ? 'disabled' : ''}`;
     prevButton.innerHTML = '<i class="fas fa-chevron-left"></i>';
-    prevButton.disabled = currentPage === 1;
+    prevButton.disabled = !paginationData.has_prev;
     prevButton.addEventListener('click', () => {
-        if (currentPage > 1) {
-            currentPage--;
-            renderTable();
+        if (paginationData.has_prev) {
+            currentPage = paginationData.current_page - 1;
+            loadGuests();
         }
     });
     pagination.appendChild(prevButton);
     
     // Page buttons
-    for (let i = 1; i <= totalPages; i++) {
+    for (let i = 1; i <= paginationData.total_pages; i++) {
         const pageButton = document.createElement('button');
-        pageButton.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+        pageButton.className = `page-btn ${i === paginationData.current_page ? 'active' : ''}`;
         pageButton.textContent = i;
         pageButton.addEventListener('click', () => {
             currentPage = i;
-            renderTable();
+            loadGuests();
         });
         pagination.appendChild(pageButton);
     }
     
     // Next button
     const nextButton = document.createElement('button');
-    nextButton.className = `page-btn ${currentPage === totalPages ? 'disabled' : ''}`;
+    nextButton.className = `page-btn ${!paginationData.has_next ? 'disabled' : ''}`;
     nextButton.innerHTML = '<i class="fas fa-chevron-right"></i>';
-    nextButton.disabled = currentPage === totalPages;
+    nextButton.disabled = !paginationData.has_next;
     nextButton.addEventListener('click', () => {
-        if (currentPage < totalPages) {
-            currentPage++;
-            renderTable();
+        if (paginationData.has_next) {
+            currentPage = paginationData.current_page + 1;
+            loadGuests();
         }
     });
     pagination.appendChild(nextButton);
 }
 
 // Show guest details in modal
-function showGuestDetails(guestId) {
-    const guest = guestsData.find(g => g.id === guestId);
-    if (!guest) return;
-    
-    // Calculate global rank based on visits
-    const globalRank = sortedGuestsByVisits.findIndex(g => g.id === guest.id) + 1;
+function showGuestDetails(guest) {
+    const firstName = guest.first_name || '';
+    const lastName = guest.last_name || '';
+    const fullName = `${firstName} ${lastName}`.trim() || 'Unknown Guest';
+    const email = guest.email_address || 'No email';
+    const phone = guest.phone_number || 'No phone';
+    const visits = guest.total_visits || 0;
+    const rank = guest.rank || 0;
+    const lastVisit = guest.last_visit || guest.created_at;
+    const totalSpent = guest.total_spent || 0;
+    const address = guest.address || 'No address provided';
+    const joinDate = guest.created_at || 'Unknown';
     
     if (guestDetails) {
         guestDetails.innerHTML = `
             <div class="flex items-center gap-4 mb-6">
                 <div class="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center">
-                    <span class="text-white font-semibold text-xl">${guest.name.split(' ').map(n => n[0]).join('')}</span>
+                    <span class="text-white font-semibold text-xl">${getInitials(fullName)}</span>
                 </div>
                 <div>
-                    <h3 class="text-xl font-bold">${guest.name}</h3>
-                    <p class="text-gray-600">${globalRank <= 10 ? `Rank #${globalRank} Guest` : 'Regular Guest'}</p>
+                    <h3 class="text-xl font-bold">${fullName}</h3>
+                    <p class="text-gray-600">${visits >= 10 ? 'VIP Guest' : visits >= 5 ? 'Regular Guest' : 'New Guest'}</p>
                 </div>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                 <div>
                     <h4 class="font-semibold text-gray-700 mb-2">Contact Information</h4>
-                    <p><strong>Email:</strong> ${guest.email}</p>
-                    <p><strong>Phone:</strong> ${guest.phone}</p>
-                    <p><strong>Member Since:</strong> ${formatDate(guest.joinDate)}</p>
+                    <p class="mb-2"><strong>Email:</strong> ${email}</p>
+                    <p class="mb-2"><strong>Phone:</strong> ${phone}</p>
+                    <p class="mb-2"><strong>Address:</strong> ${address}</p>
+                    <p><strong>Member Since:</strong> ${formatDate(joinDate)}</p>
                 </div>
                 <div>
                     <h4 class="font-semibold text-gray-700 mb-2">Guest Statistics</h4>
-                    <p><strong>Total Visits:</strong> ${guest.visits}</p>
-                    <p><strong>Last Visit:</strong> ${formatDate(guest.lastVisit)}</p>
-                    <p><strong>Total Spent:</strong> ₱${guest.totalSpent.toLocaleString()}</p>
-                    <p><strong>Status:</strong> <span class="px-2 py-1 rounded-full text-xs font-medium ${guest.status === 'vip' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800'}">${guest.status.toUpperCase()}</span></p>
+                    <p class="mb-2"><strong>Total Visits:</strong> ${visits}</p>
+                    <p class="mb-2"><strong>Last Visit:</strong> ${formatDate(lastVisit)}</p>
+                    <p class="mb-2"><strong>Total Spent:</strong> ${formatCurrency(totalSpent)}</p>
+                    <p><strong>Status:</strong> ${getRankingBadge(rank)}</p>
                 </div>
             </div>
             
-            <div class="mb-6">
-                <h4 class="font-semibold text-gray-700 mb-2">Preferences</h4>
-                <p>${guest.preferences}</p>
-            </div>
-            
-            <div class="mb-6">
-                <h4 class="font-semibold text-gray-700 mb-2">Notes</h4>
-                <p>${guest.notes}</p>
-            </div>
-            
             <div class="flex justify-end gap-4 mt-8">
-                <button class="send-msg-modal btn-primary" data-id="${guest.id}">
+                <button class="send-msg-modal btn-primary" data-email="${email}">
                     <i class="fas fa-envelope mr-2"></i> Send Message
                 </button>
                 <button class="close-modal-btn btn-secondary">
@@ -585,8 +515,8 @@ function showGuestDetails(guestId) {
         
         if (msgBtn) {
             msgBtn.addEventListener('click', function() {
-                const guestId = this.getAttribute('data-id');
-                alert(`Message feature would open for guest ${guestId}`);
+                const email = this.getAttribute('data-email');
+                showMessageModal(email);
             });
         }
         
@@ -601,6 +531,15 @@ function showGuestDetails(guestId) {
     }
 }
 
+// Show message modal
+function showMessageModal(email) {
+    // Simple implementation - in a real app, you'd have a proper messaging system
+    const message = prompt(`Enter message to send to ${email}:`, "Dear guest, thank you for choosing BatoSpring Resort!");
+    if (message) {
+        showSuccess(`Message sent to ${email}`);
+    }
+}
+
 // Close guest modal
 function closeGuestModal() {
     if (guestModal) {
@@ -611,18 +550,23 @@ function closeGuestModal() {
 // Update stats cards
 function updateStats() {
     const total = filteredGuests.length;
-    const vip = filteredGuests.filter(g => g.status === 'vip').length;
+    const vip = filteredGuests.filter(g => (g.total_visits || 0) >= 10).length;
     
-    // For demo, we'll calculate current guests as those who visited in the last 30 days
+    // Calculate current guests as those who visited in the last 30 days
     const current = filteredGuests.filter(g => {
-        const lastVisit = new Date(g.lastVisit);
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        return lastVisit >= thirtyDaysAgo;
+        if (!g.last_visit) return false;
+        try {
+            const lastVisit = new Date(g.last_visit);
+            const thirtyDaysAgo = new Date();
+            thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+            return lastVisit >= thirtyDaysAgo;
+        } catch (e) {
+            return false;
+        }
     }).length;
     
     const avgVisits = filteredGuests.length > 0 ? 
-        (filteredGuests.reduce((sum, guest) => sum + guest.visits, 0) / filteredGuests.length).toFixed(1) : 0;
+        (filteredGuests.reduce((sum, guest) => sum + (guest.total_visits || 0), 0) / filteredGuests.length).toFixed(1) : 0;
     
     if (document.getElementById('totalGuests')) {
         document.getElementById('totalGuests').textContent = total;
@@ -638,46 +582,79 @@ function updateStats() {
     }
 }
 
-// Format date for display
-function formatDate(dateString) {
+// Export guests to CSV
+function exportGuests() {
     try {
-        const options = { year: 'numeric', month: 'short', day: 'numeric' };
-        return new Date(dateString).toLocaleDateString('en-US', options);
-    } catch (e) {
-        return dateString;
+        const headers = ['Name', 'Email', 'Phone', 'Visits', 'Last Visit', 'Total Spent', 'Status'];
+        const csvContent = [
+            headers.join(','),
+            ...filteredGuests.map(guest => {
+                const firstName = guest.first_name || '';
+                const lastName = guest.last_name || '';
+                const fullName = `${firstName} ${lastName}`.trim();
+                const visits = guest.total_visits || 0;
+                const status = visits >= 10 ? 'VIP' : visits >= 5 ? 'Regular' : 'New';
+                
+                return [
+                    `"${fullName}"`,
+                    `"${guest.email_address || ''}"`,
+                    `"${guest.phone_number || ''}"`,
+                    visits,
+                    guest.last_visit || '',
+                    guest.total_spent || 0,
+                    status
+                ].join(',');
+            })
+        ].join('\n');
+        
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `batospring-guests-${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        showSuccess('Guests exported successfully!');
+    } catch (error) {
+        console.error('Error exporting guests:', error);
+        showError('Failed to export guests');
     }
 }
 
-// Export guests to CSV
-function exportGuests() {
-    // Simple CSV export implementation
-    const headers = ['Rank', 'Name', 'Email', 'Phone', 'Visits', 'Last Visit', 'Total Spent', 'Status'];
-    const csvContent = [
-        headers.join(','),
-        ...filteredGuests.map(guest => {
-            const globalRank = sortedGuestsByVisits.findIndex(g => g.id === guest.id) + 1;
-            return [
-                globalRank,
-                `"${guest.name}"`,
-                `"${guest.email}"`,
-                `"${guest.phone}"`,
-                guest.visits,
-                guest.lastVisit,
-                guest.totalSpent,
-                guest.status
-            ].join(',');
-        })
-    ].join('\n');
-    
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `batospring-guests-${new Date().toISOString().split('T')[0]}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    alert('Guests exported successfully!');
+// UI Helper Functions
+function showLoadingState(message = 'Loading...') {
+}
+
+function hideLoadingState() {
+    // Hide loading indicator
+}
+
+// SweetAlert 2 functions
+function showSuccess(message) {
+    Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: message,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+    });
+}
+
+function showError(message) {
+    Swal.fire({
+        icon: 'error',
+        title: 'Error!',
+        text: message,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 5000,
+        timerProgressBar: true,
+    });
 }

@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bookings & Reservations - BatoSpring Resort</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <link rel="stylesheet" href="https://unpkg.com/aos@2.3.1/dist/aos.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/styles.css">
@@ -200,12 +202,10 @@
                     <table>
                         <thead>
                             <tr>
-                                <th>Booking ID</th>
                                 <th>Guest Name</th>
                                 <th>Resource</th>
                                 <th>Check-in</th>
                                 <th>Check-out</th>
-                                <th>Guests</th>
                                 <th>Amount</th>
                                 <th>Status</th>
                                 <th>Actions</th>
@@ -253,7 +253,8 @@
 
     <!-- AOS Script -->
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
-    
+    <script src="../js/config.js"></script>
+    <script src="../js/user-header.js"></script>
     <script src="js/bookings-script.js"></script>
 </body>
 </html>

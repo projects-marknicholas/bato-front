@@ -5,64 +5,15 @@ AOS.init({
     once: true,
 });
 
-// Sample FAQs data
-const faqsData = [
-    {
-        id: "FAQ001",
-        question: "How do I make a booking?",
-        answer: "You can make a booking through our website by selecting your desired dates and resources. Alternatively, contact our reservation team.",
-        category: "booking",
-        lastUpdated: "2025-09-20",
-        status: "active"
-    },
-    {
-        id: "FAQ002",
-        question: "What are the check-in and check-out times?",
-        answer: "Check-in time is 2:00 PM and check-out time is 12:00 PM. Early check-in or late check-out may be available upon request.",
-        category: "general",
-        lastUpdated: "2025-09-15",
-        status: "active"
-    },
-    {
-        id: "FAQ003",
-        question: "What payment methods do you accept?",
-        answer: "We accept credit cards, debit cards, bank transfers, and cash payments at the resort.",
-        category: "payment",
-        lastUpdated: "2025-09-10",
-        status: "pending"
-    },
-    {
-        id: "FAQ004",
-        question: "Are pets allowed in the resort?",
-        answer: "Unfortunately, pets are not allowed in our facilities to ensure the comfort of all guests.",
-        category: "facilities",
-        lastUpdated: "2025-09-05",
-        status: "active"
-    },
-    {
-        id: "FAQ005",
-        question: "What is the cancellation policy?",
-        answer: "Cancellations made 7 days before arrival are fully refundable. Within 7 days, 50% refund. No-show is non-refundable.",
-        category: "booking",
-        lastUpdated: "2025-09-01",
-        status: "active"
-    },
-    {
-        id: "FAQ006",
-        question: "Do you have WiFi available?",
-        answer: "Yes, complimentary WiFi is available throughout the resort premises.",
-        category: "facilities",
-        lastUpdated: "2025-08-25",
-        status: "inactive"
-    }
-];
+// API Configuration
+const API_BASE_URL = window.CONFIG.API_BASE_URL;
+const ENDPOINT_URL = window.CONFIG.ENDPOINTS.ADMIN_HELP;
 
 // Global variables
 let currentPage = 1;
-const recordsPerPage = 5;
+const recordsPerPage = 10;
+let allFAQs = [];
 let filteredFAQs = [];
-let sortField = 'question';
-let sortDirection = 'asc';
 
 // DOM Elements
 const sidebarToggle = document.getElementById('sidebarToggle');
@@ -84,15 +35,8 @@ const modalTitle = document.getElementById('modalTitle');
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize data
-    filteredFAQs = [...faqsData];
-    
-    updateStats();
-    sortFAQs();
-    renderTable();
+    initializeApp();
     setupEventListeners();
-    
-    console.log('Page initialized with', faqsData.length, 'FAQs');
 });
 
 // Set up event listeners
@@ -111,17 +55,6 @@ function setupEventListeners() {
     }
     if (categoryFilter) {
         categoryFilter.addEventListener('change', filterFAQs);
-    }
-    
-    // Sorting
-    const sortableHeaders = document.querySelectorAll('th[data-sort]');
-    if (sortableHeaders.length > 0) {
-        sortableHeaders.forEach(th => {
-            th.addEventListener('click', function() {
-                const field = this.getAttribute('data-sort');
-                sortFAQs(field);
-            });
-        });
     }
     
     // Modal
@@ -160,154 +93,271 @@ function toggleSidebar() {
     }
 }
 
-// Sort FAQs by specified field
-function sortFAQs(field = null) {
-    if (field) {
-        if (sortField === field) {
-            sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+// Initialize application
+async function initializeApp() {
+    if (!checkAuthentication()) {
+        return;
+    }
+    
+    try {
+        await loadFAQs();
+    } catch (error) {
+        console.error('Failed to initialize app:', error);
+        showError('Failed to load FAQs data');
+    }
+}
+
+// Check if user is authenticated
+function checkAuthentication() {
+    const apiKey = getApiKey();
+    const csrfToken = getCsrfToken();
+    
+    if (!apiKey || !csrfToken) {
+        window.location.href = '../index.html';
+        return false;
+    }
+    return true;
+}
+
+// Get API key from localStorage
+function getApiKey() {
+    try {
+        const userData = localStorage.getItem('user');
+        if (userData) {
+            const user = JSON.parse(userData);
+            return user.api_key || null;
+        }
+    } catch (error) {
+        console.error('Error parsing user data from localStorage:', error);
+    }
+    return null;
+}
+
+// Get CSRF token from localStorage
+function getCsrfToken() {
+    try {
+        const userData = localStorage.getItem('user');
+        if (userData) {
+            const user = JSON.parse(userData);
+            return user.csrf_token || null;
+        }
+    } catch (error) {
+        console.error('Error parsing user data from localStorage:', error);
+    }
+    return null;
+}
+
+// API request helper
+async function makeApiRequest(endpoint, options = {}) {
+    const apiKey = getApiKey();
+    const csrfToken = getCsrfToken();
+
+    if (!apiKey) {
+        throw new Error('API key not found. Please sign in again.');
+    }
+
+    if (!csrfToken) {
+        throw new Error('CSRF token not found. Please sign in again.');
+    }
+
+    const defaultOptions = {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+            'X-CSRF-Token': csrfToken,
+        },
+    };
+
+    const config = {
+        ...defaultOptions,
+        ...options,
+        headers: {
+            ...defaultOptions.headers,
+            ...options.headers,
+        },
+    };
+
+    // If body is provided and it's an object, stringify it
+    if (config.body && typeof config.body === 'object') {
+        config.body = JSON.stringify(config.body);
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+        
+        if (response.status === 401) {
+            localStorage.removeItem('user');
+            window.location.href = '../index.html';
+            return;
+        }
+
+        if (response.status === 429) {
+            throw new Error('Rate limit exceeded. Please try again later.');
+        }
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        }
+
+        return response.json();
+    } catch (error) {
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            throw new Error('Network error: Unable to connect to server');
+        }
+        throw error;
+    }
+}
+
+// Load FAQs from backend
+async function loadFAQs() {
+    try {
+        showLoadingState('Loading FAQs...');
+        
+        // Build query parameters
+        const params = new URLSearchParams();
+        params.append('page', currentPage);
+        params.append('limit', recordsPerPage);
+        
+        if (searchInput && searchInput.value) {
+            params.append('search', searchInput.value);
+        }
+        
+        if (categoryFilter && categoryFilter.value && categoryFilter.value !== 'all') {
+            params.append('category', categoryFilter.value);
+        }
+        
+        const data = await makeApiRequest(`${ENDPOINT_URL}?${params.toString()}`);
+        
+        if (data && data.success) {
+            allFAQs = data.data || [];
+            filteredFAQs = [...allFAQs];
+            
+            updateStats();
+            renderTable(data.pagination);
         } else {
-            sortField = field;
-            sortDirection = 'asc';
+            throw new Error('Failed to load FAQs data');
         }
-    }
-    
-    filteredFAQs.sort((a, b) => {
-        let aValue = a[sortField];
-        let bValue = b[sortField];
+    } catch (error) {
+        console.error('Error loading FAQs:', error);
+        showError('Failed to load FAQs: ' + error.message);
         
-        if (sortField === 'question') {
-            aValue = a.question.toLowerCase();
-            bValue = b.question.toLowerCase();
-        } else if (sortField === 'lastUpdated') {
-            aValue = new Date(a.lastUpdated);
-            bValue = new Date(b.lastUpdated);
-        }
-        
-        if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-        if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
-        return 0;
-    });
-    
-    // Update sort indicators
-    const sortableHeaders = document.querySelectorAll('th[data-sort]');
-    if (sortableHeaders.length > 0) {
-        sortableHeaders.forEach(th => {
-            const indicator = th.querySelector('.sort-indicator');
-            if (th.getAttribute('data-sort') === sortField) {
-                if (!indicator) {
-                    const newIndicator = document.createElement('span');
-                    newIndicator.className = 'sort-indicator';
-                    th.appendChild(newIndicator);
-                }
-                th.querySelector('.sort-indicator').textContent = sortDirection === 'asc' ? '↑' : '↓';
-            } else {
-                if (indicator) indicator.textContent = '';
-            }
-        });
+        // Show empty state
+        allFAQs = [];
+        filteredFAQs = [];
+        updateStats();
+        renderTable();
+    } finally {
+        hideLoadingState();
     }
-    
-    renderTable();
 }
 
 // Filter FAQs based on filters
 function filterFAQs() {
-    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
-    const category = categoryFilter ? categoryFilter.value : 'all';
-    
-    filteredFAQs = faqsData.filter(faq => {
-        // Search filter
-        const matchesSearch = 
-            faq.question.toLowerCase().includes(searchTerm) ||
-            faq.answer.toLowerCase().includes(searchTerm);
-        
-        // Category filter
-        const matchesCategory = category === 'all' || faq.category === category;
-        
-        return matchesSearch && matchesCategory;
-    });
-    
     currentPage = 1;
-    sortFAQs();
-    updateStats();
+    loadFAQs();
 }
 
 // Get category badge
 function getCategoryBadge(category) {
-    if (category === 'booking') {
-        return `<span class="category-badge category-booking">Booking</span>`;
-    } else if (category === 'facilities') {
-        return `<span class="category-badge category-facilities">Facilities</span>`;
-    } else if (category === 'payment') {
-        return `<span class="category-badge category-payment">Payment</span>`;
-    } else if (category === 'general') {
-        return `<span class="category-badge category-general">General</span>`;
-    } else if (category === 'other') {
-        return `<span class="category-badge category-other">Other</span>`;
-    }
+    const categories = {
+        'booking': { class: 'category-booking', label: 'Booking' },
+        'facilities': { class: 'category-facilities', label: 'Facilities' },
+        'payment': { class: 'category-payment', label: 'Payment' },
+        'general': { class: 'category-general', label: 'General' },
+        'other': { class: 'category-other', label: 'Other' }
+    };
+    
+    const cat = categories[category] || { class: 'category-other', label: category };
+    return `<span class="category-badge ${cat.class}">${cat.label}</span>`;
 }
 
 // Get status badge
 function getStatusBadge(status) {
     if (status === 'active') {
-        return `<span class="status-badge status-available">Active</span>`;
-    } else if (status === 'pending') {
-        return `<span class="status-badge status-occupied">Pending</span>`;
-    } else if (status === 'inactive') {
-        return `<span class="status-badge status-closed">Inactive</span>`;
+        return `<span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium bg-green-50 text-green-700 shadow-sm">
+                    <span class="w-2 h-2 rounded-full bg-green-600/90 block"></span>
+                    Active
+                </span>`;
+    } else if (status === 'archive') {
+        return `<span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 shadow-sm">
+                    <span class="w-2 h-2 rounded-full bg-blue-600/90 block"></span>
+                    Archived
+                </span>`;
     }
+    return `<span class="status-badge">${status}</span>`;
+}
+
+// Format date for display
+function formatDate(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    });
+}
+
+// Truncate text for display
+function truncateText(text, maxLength = 100) {
+    if (!text) return '';
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
 }
 
 // Render the table with current data
-function renderTable() {
+function renderTable(paginationData = null) {
     if (!faqsTableBody) {
         console.error('Table body element not found');
         return;
     }
     
-    // Calculate pagination
-    const totalPages = Math.ceil(filteredFAQs.length / recordsPerPage);
-    const startIndex = (currentPage - 1) * recordsPerPage;
-    const endIndex = Math.min(startIndex + recordsPerPage, filteredFAQs.length);
-    const currentFAQs = filteredFAQs.slice(startIndex, endIndex);
-    
-    // Update showing records info
-    if (showingFrom) showingFrom.textContent = filteredFAQs.length > 0 ? startIndex + 1 : 0;
-    if (showingTo) showingTo.textContent = endIndex;
-    if (totalRecords) totalRecords.textContent = filteredFAQs.length;
-    
     // Clear table body
     faqsTableBody.innerHTML = '';
     
     // Check if there are FAQs to display
-    if (currentFAQs.length === 0) {
+    if (!filteredFAQs || filteredFAQs.length === 0) {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td colspan="5" class="text-center py-8 text-gray-500">
                 <i class="fas fa-question-circle text-4xl mb-4 block"></i>
-                No FAQs found matching your criteria
+                No FAQs found
             </td>
         `;
         faqsTableBody.appendChild(row);
+        
+        // Update showing records info
+        updateShowingInfo(0, paginationData);
         return;
     }
     
-    // Populate table rows with AOS animations
-    currentFAQs.forEach((faq, index) => {
+    // Populate table rows
+    filteredFAQs.forEach((faq, index) => {
         const row = document.createElement('tr');
-        row.setAttribute('data-aos', 'fade-up');
-        row.setAttribute('data-aos-delay', (index % 10) * 50);
+        const question = faq.question || '';
+        const answer = faq.answer || '';
+        const category = faq.category || 'other';
+        const status = faq.status || 'active';
+        const updatedAt = faq.updated_at || faq.created_at;
+        const faqId = faq.faq_id || '';
         
         row.innerHTML = `
-            <td class="font-medium">${faq.question}</td>
-            <td>${getCategoryBadge(faq.category)}</td>
-            <td>${faq.lastUpdated}</td>
-            <td>${getStatusBadge(faq.status)}</td>
+            <td class="font-medium">
+                <div>
+                    <div class="font-medium text-gray-900">${truncateText(question, 80)}</div>
+                    <div class="text-sm text-gray-500 mt-1">${truncateText(answer, 60)}</div>
+                </div>
+            </td>
+            <td>${getCategoryBadge(category)}</td>
+            <td>${formatDate(updatedAt)}</td>
+            <td>${getStatusBadge(status)}</td>
             <td>
                 <div class="action-buttons">
-                    <button class="edit-faq btn-primary text-sm" data-id="${faq.id}">
+                    <button class="edit-faq btn-primary text-sm" data-id="${faqId}">
                         <i class="fas fa-edit mr-1"></i> Edit
                     </button>
-                    <button class="delete-faq btn-danger text-sm" data-id="${faq.id}">
+                    <button class="delete-faq btn-danger text-sm" data-id="${faqId}">
                         <i class="fas fa-trash mr-1"></i> Delete
                     </button>
                 </div>
@@ -331,8 +381,9 @@ function renderTable() {
         });
     });
     
-    // Render pagination
-    renderPagination(totalPages);
+    // Update showing info and pagination
+    updateShowingInfo(filteredFAQs.length, paginationData);
+    renderPagination(paginationData);
     
     // Reinitialize AOS for new elements
     if (typeof AOS !== 'undefined') {
@@ -340,48 +391,67 @@ function renderTable() {
     }
 }
 
+// Update showing records info
+function updateShowingInfo(currentItemsCount, paginationData) {
+    if (!paginationData) {
+        if (showingFrom) showingFrom.textContent = currentItemsCount > 0 ? '1' : '0';
+        if (showingTo) showingTo.textContent = currentItemsCount;
+        if (totalRecords) totalRecords.textContent = currentItemsCount;
+        return;
+    }
+    
+    const startIndex = (paginationData.current_page - 1) * paginationData.per_page + 1;
+    const endIndex = Math.min(startIndex + currentItemsCount - 1, paginationData.total_items);
+    
+    if (showingFrom) showingFrom.textContent = startIndex;
+    if (showingTo) showingTo.textContent = endIndex;
+    if (totalRecords) totalRecords.textContent = paginationData.total_items;
+}
+
 // Render pagination controls
-function renderPagination(totalPages) {
+function renderPagination(paginationData) {
     if (!pagination) return;
     
     pagination.innerHTML = '';
     
-    if (totalPages <= 1) return;
+    if (!paginationData || paginationData.total_pages <= 1) {
+        return;
+    }
     
     // Previous button
     const prevButton = document.createElement('button');
-    prevButton.className = `page-btn ${currentPage === 1 ? 'disabled' : ''}`;
+    prevButton.className = `page-btn ${!paginationData.has_prev ? 'disabled' : ''}`;
     prevButton.innerHTML = '<i class="fas fa-chevron-left"></i>';
-    prevButton.disabled = currentPage === 1;
+    prevButton.disabled = !paginationData.has_prev;
     prevButton.addEventListener('click', () => {
-        if (currentPage > 1) {
-            currentPage--;
-            renderTable();
+        if (paginationData.has_prev) {
+            currentPage = paginationData.current_page - 1;
+            loadFAQs();
         }
     });
     pagination.appendChild(prevButton);
     
     // Page buttons
-    for (let i = 1; i <= totalPages; i++) {
+    for (let i = 1; i <= paginationData.total_pages; i++) {
         const pageButton = document.createElement('button');
-        pageButton.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+        pageButton.className = `page-btn ${i === paginationData.current_page ? 'active' : ''}`;
         pageButton.textContent = i;
         pageButton.addEventListener('click', () => {
             currentPage = i;
-            renderTable();
+            loadFAQs();
         });
         pagination.appendChild(pageButton);
     }
     
     // Next button
     const nextButton = document.createElement('button');
-    nextButton.className = `page-btn ${currentPage === totalPages ? 'disabled' : ''}`;
+    nextButton.className = `page-btn ${!paginationData.has_next ? 'disabled' : ''}`;
     nextButton.innerHTML = '<i class="fas fa-chevron-right"></i>';
-    nextButton.disabled = currentPage === totalPages;
+    nextButton.disabled = !paginationData.has_next;
     nextButton.addEventListener('click', () => {
-        if (currentPage < totalPages) {
-            currentPage++;
-            renderTable();
+        if (paginationData.has_next) {
+            currentPage = paginationData.current_page + 1;
+            loadFAQs();
         }
     });
     pagination.appendChild(nextButton);
@@ -392,26 +462,41 @@ function openAddFAQModal() {
     if (modalTitle) modalTitle.textContent = 'Add New FAQ';
     if (faqForm) faqForm.reset();
     
+    // Clear FAQ ID for new FAQ
+    document.getElementById('faqId').value = '';
+    
     // Show modal
     if (faqModal) faqModal.classList.add('active');
 }
 
 // Open edit FAQ modal
-function openEditFAQModal(faqId) {
-    const faq = faqsData.find(f => f.id === faqId);
-    if (!faq) return;
-    
-    if (modalTitle) modalTitle.textContent = 'Edit FAQ';
-    if (faqForm) {
-        document.getElementById('faqId').value = faq.id;
-        document.getElementById('question').value = faq.question;
-        document.getElementById('answer').value = faq.answer;
-        document.getElementById('category').value = faq.category;
-        document.getElementById('status').value = faq.status;
+async function openEditFAQModal(faqId) {
+    try {
+        showLoadingState('Loading FAQ...');
+        
+        // Find FAQ in current data
+        const faq = allFAQs.find(f => f.faq_id === faqId);
+        if (!faq) {
+            throw new Error('FAQ not found');
+        }
+        
+        if (modalTitle) modalTitle.textContent = 'Edit FAQ';
+        if (faqForm) {
+            document.getElementById('faqId').value = faq.faq_id;
+            document.getElementById('question').value = faq.question;
+            document.getElementById('answer').value = faq.answer;
+            document.getElementById('category').value = faq.category;
+            document.getElementById('status').value = faq.status;
+        }
+        
+        // Show modal
+        if (faqModal) faqModal.classList.add('active');
+    } catch (error) {
+        console.error('Error opening edit modal:', error);
+        showError('Failed to load FAQ: ' + error.message);
+    } finally {
+        hideLoadingState();
     }
-    
-    // Show modal
-    if (faqModal) faqModal.classList.add('active');
 }
 
 // Close FAQ modal
@@ -422,59 +507,92 @@ function closeFAQModal() {
 }
 
 // Save FAQ (add or update)
-function saveFAQ(event) {
+async function saveFAQ(event) {
     event.preventDefault();
     
-    // Get form data
-    const id = document.getElementById('faqId').value || 'FAQ' + String(faqsData.length + 1).padStart(3, '0');
-    const question = document.getElementById('question').value;
-    const answer = document.getElementById('answer').value;
-    const category = document.getElementById('category').value;
-    const status = document.getElementById('status').value;
-    const lastUpdated = new Date().toISOString().split('T')[0]; // Current date
-    
-    // Check if we're editing or adding
-    const existingIndex = faqsData.findIndex(f => f.id === id);
-    
-    if (existingIndex !== -1) {
-        // Update existing FAQ
-        faqsData[existingIndex] = {
-            id,
-            question,
-            answer,
-            category,
-            lastUpdated,
-            status
+    try {
+        showLoadingState('Saving FAQ...');
+        
+        // Get form data
+        const faqId = document.getElementById('faqId').value;
+        const question = document.getElementById('question').value;
+        const answer = document.getElementById('answer').value;
+        const category = document.getElementById('category').value;
+        const status = document.getElementById('status').value;
+        
+        const faqData = {
+            question: question.trim(),
+            answer: answer.trim(),
+            category: category,
+            status: status
         };
-    } else {
-        // Add new FAQ
-        faqsData.push({
-            id,
-            question,
-            answer,
-            category,
-            lastUpdated,
-            status
-        });
+        
+        let data;
+        
+        if (faqId) {
+            // Update existing FAQ
+            faqData.faq_id = faqId;
+            data = await makeApiRequest(ENDPOINT_URL, {
+                method: 'PUT',
+                body: faqData
+            });
+        } else {
+            // Create new FAQ
+            data = await makeApiRequest(ENDPOINT_URL, {
+                method: 'POST',
+                body: faqData
+            });
+        }
+        
+        if (data && data.success) {
+            showSuccess(`FAQ ${faqId ? 'updated' : 'created'} successfully!`);
+            closeFAQModal();
+            await loadFAQs(); // Reload FAQs list
+        } else {
+            throw new Error('Failed to save FAQ');
+        }
+    } catch (error) {
+        console.error('Error saving FAQ:', error);
+        showError('Failed to save FAQ: ' + error.message);
+    } finally {
+        hideLoadingState();
     }
-    
-    // Update UI
-    filterFAQs();
-    closeFAQModal();
-    
-    // Show success message
-    alert(`FAQ ${existingIndex !== -1 ? 'updated' : 'added'} successfully!`);
 }
 
 // Delete FAQ
-function deleteFAQ(faqId) {
-    if (!confirm('Are you sure you want to delete this FAQ?')) return;
+async function deleteFAQ(faqId) {
+    const result = await Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'Cancel'
+    });
     
-    const index = faqsData.findIndex(f => f.id === faqId);
-    if (index !== -1) {
-        faqsData.splice(index, 1);
-        filterFAQs();
-        alert('FAQ deleted successfully!');
+    if (!result.isConfirmed) return;
+    
+    try {
+        showLoadingState('Deleting FAQ...');
+        
+        const data = await makeApiRequest(ENDPOINT_URL, {
+            method: 'DELETE',
+            body: { faq_id: faqId }
+        });
+        
+        if (data && data.success) {
+            showSuccess('FAQ deleted successfully!');
+            await loadFAQs(); // Reload FAQs list
+        } else {
+            throw new Error('Failed to delete FAQ');
+        }
+    } catch (error) {
+        console.error('Error deleting FAQ:', error);
+        showError('Failed to delete FAQ: ' + error.message);
+    } finally {
+        hideLoadingState();
     }
 }
 
@@ -482,8 +600,11 @@ function deleteFAQ(faqId) {
 function updateStats() {
     const total = filteredFAQs.length;
     const active = filteredFAQs.filter(f => f.status === 'active').length;
-    const pending = filteredFAQs.filter(f => f.status === 'pending').length;
-    const categories = new Set(filteredFAQs.map(f => f.category)).size;
+    const archived = filteredFAQs.filter(f => f.status === 'archive').length;
+    
+    // Get unique categories count
+    const categories = [...new Set(filteredFAQs.map(f => f.category))];
+    const categoriesCount = categories.length;
     
     if (document.getElementById('totalFAQs')) {
         document.getElementById('totalFAQs').textContent = total;
@@ -492,9 +613,53 @@ function updateStats() {
         document.getElementById('activeFAQs').textContent = active;
     }
     if (document.getElementById('categoriesCount')) {
-        document.getElementById('categoriesCount').textContent = categories;
+        document.getElementById('categoriesCount').textContent = categoriesCount;
     }
     if (document.getElementById('pendingFAQs')) {
-        document.getElementById('pendingFAQs').textContent = pending;
+        document.getElementById('pendingFAQs').textContent = archived;
     }
+}
+
+// UI Helper Functions
+function showLoadingState(message = 'Loading...') {
+    const submitBtn = faqForm?.querySelector('button[type="submit"]');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + message;
+    }
+}
+
+function hideLoadingState() {
+    const submitBtn = faqForm?.querySelector('button[type="submit"]');
+    if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Save FAQ';
+    }
+}
+
+// SweetAlert 2 functions
+function showSuccess(message) {
+    Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: message,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+    });
+}
+
+function showError(message) {
+    Swal.fire({
+        icon: 'error',
+        title: 'Error!',
+        text: message,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 5000,
+        timerProgressBar: true,
+    });
 }

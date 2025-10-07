@@ -1,104 +1,19 @@
 // Initialize AOS
 AOS.init({
-  duration: 800,
-  easing: "ease-in-out",
-  once: true,
+    duration: 800,
+    easing: "ease-in-out",
+    once: true,
 });
 
-// Sample resources data
-const resourcesData = [
-  {
-      id: "R001",
-      name: "Deluxe Room",
-      type: "room",
-      capacity: 2,
-      dayRate: 2500,
-      nightRate: 3500,
-      status: "available",
-      description: "A comfortable deluxe room with modern amenities",
-      images: ["/placeholder.svg?height=300&width=400", "/placeholder.svg?height=300&width=400"],
-      equipment: ["King-size bed", "Modern bathroom", "Air conditioning", "WiFi", "TV"],
-      latitude: 14.1132,
-      longitude: 121.3734
-  },
-  {
-      id: "R002",
-      name: "Family Cottage",
-      type: "cottage",
-      capacity: 6,
-      dayRate: 5000,
-      nightRate: 7000,
-      status: "occupied",
-      description: "Spacious cottage perfect for family gatherings",
-      images: ["/placeholder.svg?height=300&width=400"],
-      equipment: ["3 bedrooms", "Living area", "Kitchenette", "Porch", "Garden view"],
-      latitude: 14.1135,
-      longitude: 121.3730
-  },
-  {
-      id: "R003",
-      name: "Bamboo Hut",
-      type: "hut",
-      capacity: 4,
-      dayRate: 1800,
-      nightRate: 2500,
-      status: "reserved",
-      description: "Traditional bamboo hut with natural ventilation",
-      images: ["/placeholder.svg?height=300&width=400", "/placeholder.svg?height=300&width=400"],
-      equipment: ["Bamboo furniture", "Mosquito net", "Fan", "Private area"],
-      latitude: 14.1130,
-      longitude: 121.3738
-  },
-  {
-      id: "R004",
-      name: "Pool Villa",
-      type: "villa",
-      capacity: 8,
-      dayRate: 12000,
-      nightRate: 15000,
-      status: "available",
-      description: "Luxurious villa with private pool and premium amenities",
-      images: ["/placeholder.svg?height=300&width=400"],
-      equipment: ["Private pool", "4 bedrooms", "Living room", "Kitchen", "Jacuzzi"],
-      latitude: 14.1138,
-      longitude: 121.3732
-  },
-  {
-      id: "R005",
-      name: "Picnic Table 1",
-      type: "table",
-      capacity: 6,
-      dayRate: 500,
-      nightRate: 800,
-      status: "available",
-      description: "Standard picnic table near the garden area",
-      images: ["/placeholder.svg?height=300&width=400"],
-      equipment: ["Table", "Bench", "Grill area", "Shade"],
-      latitude: 14.1133,
-      longitude: 121.3736
-  },
-  {
-      id: "R006",
-      name: "Infinity Pool",
-      type: "pool",
-      capacity: 20,
-      dayRate: 2000,
-      nightRate: 3000,
-      status: "closed",
-      description: "Stunning infinity pool with mountain view",
-      images: ["/placeholder.svg?height=300&width=400", "/placeholder.svg?height=300&width=400"],
-      equipment: ["Infinity edge", "Lounge chairs", "Pool bar", "Changing rooms"],
-      latitude: 14.1136,
-      longitude: 121.3731
-  }
-];
+// API Configuration
+const API_BASE_URL = window.CONFIG.API_BASE_URL;
+const ENDPOINT_URL = window.CONFIG.ENDPOINTS.ADMIN_RESOURCES;
 
 // Global variables
 let currentPage = 1;
-const recordsPerPage = 5;
+const recordsPerPage = 10;
+let allResources = [];
 let filteredResources = [];
-let sortField = 'name';
-let sortDirection = 'asc';
 let map, marker;
 
 // DOM Elements
@@ -120,601 +35,824 @@ const addResourceBtn = document.getElementById('addResourceBtn');
 const resourceForm = document.getElementById('resourceForm');
 const modalTitle = document.getElementById('modalTitle');
 const imagePreview = document.getElementById('imagePreview');
-const resourceImages = document.getElementById('resourceImages');
+const imageUrlInput = document.getElementById('imageUrlInput');
+const addImageBtn = document.getElementById('addImageBtn');
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function() {
-  // Initialize data
-  filteredResources = [...resourcesData];
-  
-  updateStats();
-  sortResources();
-  renderTable();
-  setupEventListeners();
-  initializeMap();
-  
-  console.log('Page initialized with', resourcesData.length, 'resources');
+    initializeApp();
+    setupEventListeners();
 });
 
 // Set up event listeners
 function setupEventListeners() {
-  // Sidebar toggle
-  if (sidebarToggle) {
-      sidebarToggle.addEventListener('click', toggleSidebar);
-  }
-  if (sidebarOverlay) {
-      sidebarOverlay.addEventListener('click', toggleSidebar);
-  }
-  
-  // Filters
-  if (searchInput) {
-      searchInput.addEventListener('input', filterResources);
-  }
-  if (typeFilter) {
-      typeFilter.addEventListener('change', filterResources);
-  }
-  if (statusFilter) {
-      statusFilter.addEventListener('change', filterResources);
-  }
-  
-  // Sorting
-  const sortableHeaders = document.querySelectorAll('th[data-sort]');
-  if (sortableHeaders.length > 0) {
-      sortableHeaders.forEach(th => {
-          th.addEventListener('click', function() {
-              const field = this.getAttribute('data-sort');
-              sortResources(field);
-          });
-      });
-  }
-  
-  // Modal
-  if (closeModal) {
-      closeModal.addEventListener('click', closeResourceModal);
-  }
-  if (cancelBtn) {
-      cancelBtn.addEventListener('click', closeResourceModal);
-  }
-  
-  // Add resource button
-  if (addResourceBtn) {
-      addResourceBtn.addEventListener('click', openAddResourceModal);
-  }
-  
-  // Form submission
-  if (resourceForm) {
-      resourceForm.addEventListener('submit', saveResource);
-  }
-  
-  // Image preview
-  if (resourceImages) {
-      resourceImages.addEventListener('change', handleImageUpload);
-  }
-  
-  // Close modal when clicking outside
-  if (resourceModal) {
-      resourceModal.addEventListener('click', function(e) {
-          if (e.target === resourceModal) {
-              closeResourceModal();
-          }
-      });
-  }
+    // Sidebar toggle
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', toggleSidebar);
+    }
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', toggleSidebar);
+    }
+    
+    // Filters
+    if (searchInput) {
+        searchInput.addEventListener('input', filterResources);
+    }
+    if (typeFilter) {
+        typeFilter.addEventListener('change', filterResources);
+    }
+    if (statusFilter) {
+        statusFilter.addEventListener('change', filterResources);
+    }
+    
+    // Modal
+    if (closeModal) {
+        closeModal.addEventListener('click', closeResourceModal);
+    }
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', closeResourceModal);
+    }
+    
+    // Add resource button
+    if (addResourceBtn) {
+        addResourceBtn.addEventListener('click', openAddResourceModal);
+    }
+    
+    // Form submission
+    if (resourceForm) {
+        resourceForm.addEventListener('submit', saveResource);
+    }
+    
+    // Add image button
+    if (addImageBtn) {
+        addImageBtn.addEventListener('click', addImageFromUrl);
+    }
+    
+    // Enter key for image URL input
+    if (imageUrlInput) {
+        imageUrlInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addImageFromUrl();
+            }
+        });
+    }
+    
+    // Close modal when clicking outside
+    if (resourceModal) {
+        resourceModal.addEventListener('click', function(e) {
+            if (e.target === resourceModal) {
+                closeResourceModal();
+            }
+        });
+    }
 }
 
 // Toggle sidebar on mobile
 function toggleSidebar() {
-  if (sidebar && sidebarOverlay) {
-      sidebar.classList.toggle('active');
-      sidebarOverlay.classList.toggle('active');
-  }
+    if (sidebar && sidebarOverlay) {
+        sidebar.classList.toggle('active');
+        sidebarOverlay.classList.toggle('active');
+    }
 }
 
-// Sort resources by specified field
-function sortResources(field = null) {
-  if (field) {
-      if (sortField === field) {
-          // Toggle direction if same field
-          sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-      } else {
-          // New field, default to ascending
-          sortField = field;
-          sortDirection = 'asc';
-      }
-  }
-  
-  filteredResources.sort((a, b) => {
-      let aValue = a[sortField];
-      let bValue = b[sortField];
-      
-      if (sortField === 'name') {
-          aValue = a.name.toLowerCase();
-          bValue = b.name.toLowerCase();
-      }
-      
-      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
-      return 0;
-  });
-  
-  // Update sort indicators
-  const sortableHeaders = document.querySelectorAll('th[data-sort]');
-  if (sortableHeaders.length > 0) {
-      sortableHeaders.forEach(th => {
-          const indicator = th.querySelector('.sort-indicator');
-          if (th.getAttribute('data-sort') === sortField) {
-              if (!indicator) {
-                  const newIndicator = document.createElement('span');
-                  newIndicator.className = 'sort-indicator';
-                  th.appendChild(newIndicator);
-              }
-              th.querySelector('.sort-indicator').textContent = sortDirection === 'asc' ? '↑' : '↓';
-          } else {
-              if (indicator) indicator.textContent = '';
-          }
-      });
-  }
-  
-  renderTable();
+// Initialize application
+async function initializeApp() {
+    if (!checkAuthentication()) {
+        return;
+    }
+    
+    try {
+        await loadResources();
+        initializeMap();
+    } catch (error) {
+        console.error('Failed to initialize app:', error);
+        showError('Failed to load resources data');
+    }
+}
+
+// Check if user is authenticated
+function checkAuthentication() {
+    const apiKey = getApiKey();
+    const csrfToken = getCsrfToken();
+    
+    if (!apiKey || !csrfToken) {
+        window.location.href = '../index.html';
+        return false;
+    }
+    return true;
+}
+
+// Get API key from localStorage
+function getApiKey() {
+    try {
+        const userData = localStorage.getItem('user');
+        if (userData) {
+            const user = JSON.parse(userData);
+            return user.api_key || null;
+        }
+    } catch (error) {
+        console.error('Error parsing user data from localStorage:', error);
+    }
+    return null;
+}
+
+// Get CSRF token from localStorage
+function getCsrfToken() {
+    try {
+        const userData = localStorage.getItem('user');
+        if (userData) {
+            const user = JSON.parse(userData);
+            return user.csrf_token || null;
+        }
+    } catch (error) {
+        console.error('Error parsing user data from localStorage:', error);
+    }
+    return null;
+}
+
+// API request helper
+async function makeApiRequest(endpoint, options = {}) {
+    const apiKey = getApiKey();
+    const csrfToken = getCsrfToken();
+
+    if (!apiKey) {
+        throw new Error('API key not found. Please sign in again.');
+    }
+
+    if (!csrfToken) {
+        throw new Error('CSRF token not found. Please sign in again.');
+    }
+
+    const defaultOptions = {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+            'X-CSRF-Token': csrfToken,
+        },
+    };
+
+    const config = {
+        ...defaultOptions,
+        ...options,
+        headers: {
+            ...defaultOptions.headers,
+            ...options.headers,
+        },
+    };
+
+    // If body is provided and it's an object, stringify it
+    if (config.body && typeof config.body === 'object') {
+        config.body = JSON.stringify(config.body);
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+        
+        if (response.status === 401) {
+            localStorage.removeItem('user');
+            window.location.href = '../index.html';
+            return;
+        }
+
+        if (response.status === 429) {
+            throw new Error('Rate limit exceeded. Please try again later.');
+        }
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        }
+
+        return response.json();
+    } catch (error) {
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            throw new Error('Network error: Unable to connect to server');
+        }
+        throw error;
+    }
+}
+
+// Load resources from backend
+async function loadResources() {
+    try {
+        showLoadingState('Loading resources...');
+        
+        // Build query parameters
+        const params = new URLSearchParams();
+        params.append('page', currentPage);
+        params.append('limit', recordsPerPage);
+        
+        if (searchInput && searchInput.value) {
+            params.append('search', searchInput.value);
+        }
+        
+        if (typeFilter && typeFilter.value && typeFilter.value !== 'all') {
+            params.append('resource_type', typeFilter.value);
+        }
+        
+        if (statusFilter && statusFilter.value && statusFilter.value !== 'all') {
+            params.append('status', statusFilter.value);
+        }
+        
+        const data = await makeApiRequest(`${ENDPOINT_URL}?${params.toString()}`);
+        
+        if (data && data.success) {
+            allResources = data.data || [];
+            filteredResources = [...allResources];
+            
+            updateStats();
+            renderTable(data.pagination);
+        } else {
+            throw new Error('Failed to load resources data');
+        }
+    } catch (error) {
+        console.error('Error loading resources:', error);
+        showError('Failed to load resources: ' + error.message);
+        
+        // Show empty state
+        allResources = [];
+        filteredResources = [];
+        updateStats();
+        renderTable();
+    } finally {
+        hideLoadingState();
+    }
 }
 
 // Filter resources based on filters
 function filterResources() {
-  const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
-  const type = typeFilter ? typeFilter.value : 'all';
-  const status = statusFilter ? statusFilter.value : 'all';
-  
-  filteredResources = resourcesData.filter(resource => {
-      // Search filter
-      const matchesSearch = 
-          resource.name.toLowerCase().includes(searchTerm) ||
-          resource.description.toLowerCase().includes(searchTerm);
-      
-      // Type filter
-      const matchesType = type === 'all' || resource.type === type;
-      
-      // Status filter
-      const matchesStatus = status === 'all' || resource.status === status;
-      
-      return matchesSearch && matchesType && matchesStatus;
-  });
-  
-  currentPage = 1;
-  sortResources();
-  updateStats();
+    currentPage = 1;
+    loadResources();
 }
 
 // Get status badge
 function getStatusBadge(status) {
-  if (status === 'available') {
-      return `<span class="status-badge status-available">Available</span>`;
-  } else if (status === 'occupied') {
-      return `<span class="status-badge status-occupied">Occupied</span>`;
-  } else if (status === 'reserved') {
-      return `<span class="status-badge status-reserved">Reserved</span>`;
-  } else if (status === 'closed') {
-      return `<span class="status-badge status-closed">Closed</span>`;
-  }
+    if (status === 'available') {
+        return `<span class="status-badge status-available">Available</span>`;
+    } else if (status === 'occupied') {
+        return `<span class="status-badge status-occupied">Occupied</span>`;
+    } else if (status === 'reserved') {
+        return `<span class="status-badge status-reserved">Reserved</span>`;
+    } else if (status === 'closed') {
+        return `<span class="status-badge status-closed">Closed</span>`;
+    }
+    return `<span class="status-badge">${status}</span>`;
 }
 
 // Get type badge
 function getTypeBadge(type) {
-  if (type === 'room') {
-      return `<span class="type-badge type-room">Room</span>`;
-  } else if (type === 'cottage') {
-      return `<span class="type-badge type-cottage">Cottage</span>`;
-  } else if (type === 'hut') {
-      return `<span class="type-badge type-hut">Hut</span>`;
-  } else if (type === 'villa') {
-      return `<span class="type-badge type-villa">Villa</span>`;
-  } else if (type === 'table') {
-      return `<span class="type-badge type-table">Table</span>`;
-  } else if (type === 'pool') {
-      return `<span class="type-badge type-pool">Pool</span>`;
-  }
+    const types = {
+        'room': { class: 'type-room', label: 'Room' },
+        'cottage': { class: 'type-cottage', label: 'Cottage' },
+        'hut': { class: 'type-hut', label: 'Hut' },
+        'villa': { class: 'type-villa', label: 'Villa' },
+        'table': { class: 'type-table', label: 'Table' },
+        'pool': { class: 'type-pool', label: 'Pool' }
+    };
+    
+    const typeInfo = types[type.toLowerCase()] || { class: 'type-other', label: type };
+    return `<span class="type-badge ${typeInfo.class}">${typeInfo.label}</span>`;
+}
+
+// Format currency for display
+function formatCurrency(amount) {
+    return `₱${parseFloat(amount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+// Format date for display
+function formatDate(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    });
 }
 
 // Render the table with current data
-function renderTable() {
-  if (!resourcesTableBody) {
-      console.error('Table body element not found');
-      return;
-  }
-  
-  // Calculate pagination
-  const totalPages = Math.ceil(filteredResources.length / recordsPerPage);
-  const startIndex = (currentPage - 1) * recordsPerPage;
-  const endIndex = Math.min(startIndex + recordsPerPage, filteredResources.length);
-  const currentResources = filteredResources.slice(startIndex, endIndex);
-  
-  // Update showing records info
-  if (showingFrom) showingFrom.textContent = filteredResources.length > 0 ? startIndex + 1 : 0;
-  if (showingTo) showingTo.textContent = endIndex;
-  if (totalRecords) totalRecords.textContent = filteredResources.length;
-  
-  // Clear table body
-  resourcesTableBody.innerHTML = '';
-  
-  // Check if there are resources to display
-  if (currentResources.length === 0) {
-      const row = document.createElement('tr');
-      row.innerHTML = `
-          <td colspan="7" class="text-center py-8 text-gray-500">
-              <i class="fas fa-building text-4xl mb-4 block"></i>
-              No resources found matching your criteria
-          </td>
-      `;
-      resourcesTableBody.appendChild(row);
-      return;
-  }
-  
-  // Populate table rows with AOS animations
-  currentResources.forEach((resource, index) => {
-      const row = document.createElement('tr');
-      row.setAttribute('data-aos', 'fade-up');
-      row.setAttribute('data-aos-delay', (index % 10) * 50);
-      
-      row.innerHTML = `
-          <td class="font-medium">${resource.name}</td>
-          <td>${getTypeBadge(resource.type)}</td>
-          <td>${resource.capacity} persons</td>
-          <td class="font-semibold">₱${resource.dayRate.toLocaleString()}</td>
-          <td class="font-semibold">₱${resource.nightRate.toLocaleString()}</td>
-          <td>${getStatusBadge(resource.status)}</td>
-          <td>
-              <div class="action-buttons">
-                  <button class="edit-resource btn-primary text-sm" data-id="${resource.id}">
-                      <i class="fas fa-edit mr-1"></i> Edit
-                  </button>
-                  <button class="change-status btn-secondary text-sm" data-id="${resource.id}">
-                      <i class="fas fa-sync mr-1"></i> Status
-                  </button>
-              </div>
-          </td>
-      `;
-      resourcesTableBody.appendChild(row);
-  });
-  
-  // Add event listeners to action buttons
-  document.querySelectorAll('.edit-resource').forEach(button => {
-      button.addEventListener('click', function() {
-          const resourceId = this.getAttribute('data-id');
-          openEditResourceModal(resourceId);
-      });
-  });
-  
-  document.querySelectorAll('.change-status').forEach(button => {
-      button.addEventListener('click', function() {
-          const resourceId = this.getAttribute('data-id');
-          changeResourceStatus(resourceId);
-      });
-  });
-  
-  // Render pagination
-  renderPagination(totalPages);
-  
-  // Reinitialize AOS for new elements
-  if (typeof AOS !== 'undefined') {
-      AOS.refresh();
-  }
+function renderTable(paginationData = null) {
+    if (!resourcesTableBody) {
+        console.error('Table body element not found');
+        return;
+    }
+    
+    // Clear table body
+    resourcesTableBody.innerHTML = '';
+    
+    // Check if there are resources to display
+    if (!filteredResources || filteredResources.length === 0) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td colspan="7" class="text-center py-8 text-gray-500">
+                <i class="fas fa-building text-4xl mb-4 block"></i>
+                No resources found
+            </td>
+        `;
+        resourcesTableBody.appendChild(row);
+        
+        // Update showing records info
+        updateShowingInfo(0, paginationData);
+        return;
+    }
+    
+    // Populate table rows
+    filteredResources.forEach((resource, index) => {
+        const row = document.createElement('tr');
+        const resourceId = resource.resource_id;
+        const name = resource.resource_name || '';
+        const type = resource.resource_type || '';
+        const capacity = resource.capacity || 0;
+        const dayRate = resource.day_rate || 0;
+        const nightRate = resource.night_rate || 0;
+        const status = resource.status || 'available';
+        
+        row.innerHTML = `
+            <td class="font-medium">${name}</td>
+            <td>${getTypeBadge(type)}</td>
+            <td>${capacity} persons</td>
+            <td class="font-semibold">${formatCurrency(dayRate)}</td>
+            <td class="font-semibold">${formatCurrency(nightRate)}</td>
+            <td>${getStatusBadge(status)}</td>
+            <td>
+                <div class="action-buttons">
+                    <button class="edit-resource btn-primary text-sm" data-id="${resourceId}">
+                        <i class="fas fa-edit mr-1"></i> Edit
+                    </button>
+                </div>
+            </td>
+        `;
+        resourcesTableBody.appendChild(row);
+    });
+    
+    // Add event listeners to action buttons
+    document.querySelectorAll('.edit-resource').forEach(button => {
+        button.addEventListener('click', function() {
+            const resourceId = this.getAttribute('data-id');
+            openEditResourceModal(resourceId);
+        });
+    });
+    
+    document.querySelectorAll('.change-status').forEach(button => {
+        button.addEventListener('click', function() {
+            const resourceId = this.getAttribute('data-id');
+            changeResourceStatus(resourceId);
+        });
+    });
+    
+    // Update showing info and pagination
+    updateShowingInfo(filteredResources.length, paginationData);
+    renderPagination(paginationData);
+    
+    // Reinitialize AOS for new elements
+    if (typeof AOS !== 'undefined') {
+        AOS.refresh();
+    }
+}
+
+// Update showing records info
+function updateShowingInfo(currentItemsCount, paginationData) {
+    if (!paginationData) {
+        if (showingFrom) showingFrom.textContent = currentItemsCount > 0 ? '1' : '0';
+        if (showingTo) showingTo.textContent = currentItemsCount;
+        if (totalRecords) totalRecords.textContent = currentItemsCount;
+        return;
+    }
+    
+    const startIndex = (paginationData.current_page - 1) * paginationData.per_page + 1;
+    const endIndex = Math.min(startIndex + currentItemsCount - 1, paginationData.total_items);
+    
+    if (showingFrom) showingFrom.textContent = startIndex;
+    if (showingTo) showingTo.textContent = endIndex;
+    if (totalRecords) totalRecords.textContent = paginationData.total_items;
 }
 
 // Render pagination controls
-function renderPagination(totalPages) {
-  if (!pagination) return;
-  
-  pagination.innerHTML = '';
-  
-  if (totalPages <= 1) return;
-  
-  // Previous button
-  const prevButton = document.createElement('button');
-  prevButton.className = `page-btn ${currentPage === 1 ? 'disabled' : ''}`;
-  prevButton.innerHTML = '<i class="fas fa-chevron-left"></i>';
-  prevButton.disabled = currentPage === 1;
-  prevButton.addEventListener('click', () => {
-      if (currentPage > 1) {
-          currentPage--;
-          renderTable();
-      }
-  });
-  pagination.appendChild(prevButton);
-  
-  // Page buttons
-  for (let i = 1; i <= totalPages; i++) {
-      const pageButton = document.createElement('button');
-      pageButton.className = `page-btn ${i === currentPage ? 'active' : ''}`;
-      pageButton.textContent = i;
-      pageButton.addEventListener('click', () => {
-          currentPage = i;
-          renderTable();
-      });
-      pagination.appendChild(pageButton);
-  }
-  
-  // Next button
-  const nextButton = document.createElement('button');
-  nextButton.className = `page-btn ${currentPage === totalPages ? 'disabled' : ''}`;
-  nextButton.innerHTML = '<i class="fas fa-chevron-right"></i>';
-  nextButton.disabled = currentPage === totalPages;
-  nextButton.addEventListener('click', () => {
-      if (currentPage < totalPages) {
-          currentPage++;
-          renderTable();
-      }
-  });
-  pagination.appendChild(nextButton);
+function renderPagination(paginationData) {
+    if (!pagination) return;
+    
+    pagination.innerHTML = '';
+    
+    if (!paginationData || paginationData.total_pages <= 1) {
+        return;
+    }
+    
+    // Previous button
+    const prevButton = document.createElement('button');
+    prevButton.className = `page-btn ${!paginationData.has_prev ? 'disabled' : ''}`;
+    prevButton.innerHTML = '<i class="fas fa-chevron-left"></i>';
+    prevButton.disabled = !paginationData.has_prev;
+    prevButton.addEventListener('click', () => {
+        if (paginationData.has_prev) {
+            currentPage = paginationData.current_page - 1;
+            loadResources();
+        }
+    });
+    pagination.appendChild(prevButton);
+    
+    // Page buttons
+    for (let i = 1; i <= paginationData.total_pages; i++) {
+        const pageButton = document.createElement('button');
+        pageButton.className = `page-btn ${i === paginationData.current_page ? 'active' : ''}`;
+        pageButton.textContent = i;
+        pageButton.addEventListener('click', () => {
+            currentPage = i;
+            loadResources();
+        });
+        pagination.appendChild(pageButton);
+    }
+    
+    // Next button
+    const nextButton = document.createElement('button');
+    nextButton.className = `page-btn ${!paginationData.has_next ? 'disabled' : ''}`;
+    nextButton.innerHTML = '<i class="fas fa-chevron-right"></i>';
+    nextButton.disabled = !paginationData.has_next;
+    nextButton.addEventListener('click', () => {
+        if (paginationData.has_next) {
+            currentPage = paginationData.current_page + 1;
+            loadResources();
+        }
+    });
+    pagination.appendChild(nextButton);
 }
 
 // Initialize map
 function initializeMap() {
-  // Default coordinates for Bato Spring Resort (approximate)
-  const defaultLat = 14.1134;
-  const defaultLng = 121.3735;
-  
-  // Initialize map
-  map = L.map('resourceMap').setView([defaultLat, defaultLng], 16);
-  
-  // Add tile layer
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-  }).addTo(map);
-  
-  // Add default marker
-  marker = L.marker([defaultLat, defaultLng], {draggable: true}).addTo(map);
-  
-  // Update coordinates when marker is dragged
-  marker.on('dragend', function(event) {
-      const position = marker.getLatLng();
-      document.getElementById('latitude').value = position.lat;
-      document.getElementById('longitude').value = position.lng;
-  });
-  
-  // Set initial coordinates
-  document.getElementById('latitude').value = defaultLat;
-  document.getElementById('longitude').value = defaultLng;
+    // Default coordinates for Bato Spring Resort (approximate)
+    const defaultLat = 14.1134;
+    const defaultLng = 121.3735;
+    
+    // Initialize map
+    map = L.map('resourceMap').setView([defaultLat, defaultLng], 16);
+    
+    // Add tile layer
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+    
+    // Add default marker
+    marker = L.marker([defaultLat, defaultLng], {draggable: true}).addTo(map);
+    
+    // Update coordinates when marker is dragged
+    marker.on('dragend', function(event) {
+        const position = marker.getLatLng();
+        document.getElementById('latitude').value = position.lat;
+        document.getElementById('longitude').value = position.lng;
+    });
+    
+    // Set initial coordinates
+    document.getElementById('latitude').value = defaultLat;
+    document.getElementById('longitude').value = defaultLng;
 }
 
 // Open add resource modal
 function openAddResourceModal() {
-  if (modalTitle) modalTitle.textContent = 'Add New Resource';
-  if (resourceForm) resourceForm.reset();
-  if (imagePreview) imagePreview.innerHTML = '';
-  
-  // Reset map to default position
-  const defaultLat = 14.1134;
-  const defaultLng = 121.3735;
-  map.setView([defaultLat, defaultLng], 16);
-  marker.setLatLng([defaultLat, defaultLng]);
-  document.getElementById('latitude').value = defaultLat;
-  document.getElementById('longitude').value = defaultLng;
-  
-  // Reset equipment list
-  const equipmentList = document.getElementById('equipmentList');
-  equipmentList.innerHTML = '<div class="equipment-item"><input type="text" class="form-input" placeholder="Add equipment or amenity"><button type="button" class="remove-equipment" onclick="removeEquipment(this)"><i class="fas fa-times"></i></button></div>';
-  
-  // Show modal
-  if (resourceModal) resourceModal.classList.add('active');
+    if (modalTitle) modalTitle.textContent = 'Add New Resource';
+    if (resourceForm) resourceForm.reset();
+    document.getElementById('resourceId').value = '';
+    document.getElementById('resourceName').value = '';
+    document.getElementById('resourceType').selectedIndex = 0;
+    document.getElementById('capacity').value = '';
+    document.getElementById('status').selectedIndex = 0;
+    document.getElementById('dayRate').value = '';
+    document.getElementById('nightRate').value = '';
+    document.getElementById('description').value = '';
+    if (imagePreview) imagePreview.innerHTML = '';
+    if (imageUrlInput) imageUrlInput.value = '';
+    
+    // Reset map to default position
+    const defaultLat = 14.1134;
+    const defaultLng = 121.3735;
+    if (map && marker) {
+        map.setView([defaultLat, defaultLng], 16);
+        marker.setLatLng([defaultLat, defaultLng]);
+        document.getElementById('latitude').value = defaultLat;
+        document.getElementById('longitude').value = defaultLng;
+    }
+    
+    // Reset amenities list
+    const amenitiesList = document.getElementById('equipmentList');
+    amenitiesList.innerHTML = '<div class="equipment-item"><input type="text" class="form-input" placeholder="Add amenity"><button type="button" class="remove-equipment" onclick="removeEquipment(this)"><i class="fas fa-times"></i></button></div>';
+    
+    // Show modal
+    if (resourceModal) resourceModal.classList.add('active');
 }
 
 // Open edit resource modal
-function openEditResourceModal(resourceId) {
-  const resource = resourcesData.find(r => r.id === resourceId);
-  if (!resource) return;
-  
-  if (modalTitle) modalTitle.textContent = 'Edit Resource';
-  if (resourceForm) {
-      document.getElementById('resourceId').value = resource.id;
-      document.getElementById('resourceName').value = resource.name;
-      document.getElementById('resourceType').value = resource.type;
-      document.getElementById('capacity').value = resource.capacity;
-      document.getElementById('status').value = resource.status;
-      document.getElementById('dayRate').value = resource.dayRate;
-      document.getElementById('nightRate').value = resource.nightRate;
-      document.getElementById('description').value = resource.description;
-      document.getElementById('latitude').value = resource.latitude;
-      document.getElementById('longitude').value = resource.longitude;
-  }
-  
-  // Update map position
-  map.setView([resource.latitude, resource.longitude], 16);
-  marker.setLatLng([resource.latitude, resource.longitude]);
-  
-  // Update image preview
-  if (imagePreview) {
-      imagePreview.innerHTML = '';
-      resource.images.forEach(image => {
-          const imgElement = document.createElement('div');
-          imgElement.className = 'image-preview-item';
-          imgElement.innerHTML = `
-              <img src="${image}" alt="Preview">
-              <button type="button" class="remove-image" onclick="removePreviewImage(this)">
-                  <i class="fas fa-times"></i>
-              </button>
-          `;
-          imagePreview.appendChild(imgElement);
-      });
-  }
-  
-  // Update equipment list
-  const equipmentList = document.getElementById('equipmentList');
-  equipmentList.innerHTML = '';
-  resource.equipment.forEach(equipment => {
-      addEquipment(equipment);
-  });
-  
-  // Show modal
-  if (resourceModal) resourceModal.classList.add('active');
+async function openEditResourceModal(resourceId) {
+    try {
+        showLoadingState('Loading resource...');
+        
+        // Find resource in current data
+        const resource = allResources.find(r => r.resource_id === resourceId);
+        if (!resource) {
+            throw new Error('Resource not found');
+        }
+        
+        if (modalTitle) modalTitle.textContent = 'Edit Resource';
+        if (resourceForm) {
+            document.getElementById('resourceId').value = resource.resource_id;
+            document.getElementById('resourceName').value = resource.resource_name;
+            document.getElementById('resourceType').value = resource.resource_type.toLowerCase();
+            document.getElementById('capacity').value = resource.capacity;
+            document.getElementById('status').value = resource.status;
+            document.getElementById('dayRate').value = resource.day_rate;
+            document.getElementById('nightRate').value = resource.night_rate;
+            document.getElementById('description').value = resource.description;
+            document.getElementById('latitude').value = resource.latitude;
+            document.getElementById('longitude').value = resource.longitude;
+        }
+        
+        // Update map position
+        if (map && marker) {
+            const lat = parseFloat(resource.latitude) || 14.1134;
+            const lng = parseFloat(resource.longitude) || 121.3735;
+            map.setView([lat, lng], 16);
+            marker.setLatLng([lat, lng]);
+        }
+        
+        // Update image preview
+        if (imagePreview) {
+            imagePreview.innerHTML = '';
+            if (resource.images && resource.images.length > 0) {
+                resource.images.forEach(image => {
+                    addImageToPreview(image);
+                });
+            }
+        }
+        
+        // Update amenities list
+        const amenitiesList = document.getElementById('equipmentList');
+        amenitiesList.innerHTML = '';
+        if (resource.ammenities && resource.ammenities.length > 0) {
+            resource.ammenities.forEach(amenity => {
+                addEquipment(amenity);
+            });
+        } else {
+            addEquipment();
+        }
+        
+        // Show modal
+        if (resourceModal) resourceModal.classList.add('active');
+    } catch (error) {
+        console.error('Error opening edit modal:', error);
+        showError('Failed to load resource: ' + error.message);
+    } finally {
+        hideLoadingState();
+    }
 }
 
 // Close resource modal
 function closeResourceModal() {
-  if (resourceModal) {
-      resourceModal.classList.remove('active');
-  }
+    if (resourceModal) {
+        resourceModal.classList.remove('active');
+    }
 }
 
-// Handle image upload
-function handleImageUpload(event) {
-  const files = event.target.files;
-  if (!imagePreview) return;
-  
-  for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const reader = new FileReader();
-      
-      reader.onload = function(e) {
-          const imgElement = document.createElement('div');
-          imgElement.className = 'image-preview-item';
-          imgElement.innerHTML = `
-              <img src="${e.target.result}" alt="Preview">
-              <button type="button" class="remove-image" onclick="removePreviewImage(this)">
-                  <i class="fas fa-times"></i>
-              </button>
-          `;
-          imagePreview.appendChild(imgElement);
-      }
-      
-      reader.readAsDataURL(file);
-  }
+// Add image from URL
+function addImageFromUrl() {
+    const url = imageUrlInput ? imageUrlInput.value.trim() : '';
+    
+    if (!url) {
+        showError('Please enter an image URL');
+        return;
+    }
+    
+    // Basic URL validation
+    try {
+        new URL(url);
+    } catch (e) {
+        showError('Please enter a valid URL');
+        return;
+    }
+    
+    addImageToPreview(url);
+    
+    // Clear the input
+    if (imageUrlInput) {
+        imageUrlInput.value = '';
+    }
+}
+
+// Add image to preview
+function addImageToPreview(imageUrl) {
+    if (!imagePreview) return;
+    
+    const imgElement = document.createElement('div');
+    imgElement.className = 'image-preview-item';
+    imgElement.innerHTML = `
+        <img src="${imageUrl}" alt="Preview" onerror="this.style.display='none'">
+        <button type="button" class="remove-image" onclick="removePreviewImage(this)">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    imagePreview.appendChild(imgElement);
 }
 
 // Remove preview image
 function removePreviewImage(button) {
-  button.parentElement.remove();
+    button.parentElement.remove();
 }
 
 // Add equipment field
 function addEquipment(value = '') {
-  const equipmentList = document.getElementById('equipmentList');
-  const equipmentItem = document.createElement('div');
-  equipmentItem.className = 'equipment-item';
-  equipmentItem.innerHTML = `
-      <input type="text" class="form-input" placeholder="Add equipment or amenity" value="${value}">
-      <button type="button" class="remove-equipment" onclick="removeEquipment(this)">
-          <i class="fas fa-times"></i>
-      </button>
-  `;
-  equipmentList.appendChild(equipmentItem);
+    const equipmentList = document.getElementById('equipmentList');
+    const equipmentItem = document.createElement('div');
+    equipmentItem.className = 'equipment-item';
+    equipmentItem.innerHTML = `
+        <input type="text" class="form-input" placeholder="Add amenity" value="${value}">
+        <button type="button" class="remove-equipment" onclick="removeEquipment(this)">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    equipmentList.appendChild(equipmentItem);
 }
 
 // Remove equipment field
 function removeEquipment(button) {
-  // Don't remove if it's the last item
-  if (document.querySelectorAll('.equipment-item').length > 1) {
-      button.parentElement.remove();
-  }
+    // Don't remove if it's the last item
+    if (document.querySelectorAll('.equipment-item').length > 1) {
+        button.parentElement.remove();
+    }
 }
 
 // Save resource (add or update)
-function saveResource(event) {
-  event.preventDefault();
-  
-  // Get form data
-  const id = document.getElementById('resourceId').value || 'R' + String(resourcesData.length + 1).padStart(3, '0');
-  const name = document.getElementById('resourceName').value;
-  const type = document.getElementById('resourceType').value;
-  const capacity = parseInt(document.getElementById('capacity').value);
-  const status = document.getElementById('status').value;
-  const dayRate = parseFloat(document.getElementById('dayRate').value);
-  const nightRate = parseFloat(document.getElementById('nightRate').value);
-  const description = document.getElementById('description').value;
-  const latitude = parseFloat(document.getElementById('latitude').value);
-  const longitude = parseFloat(document.getElementById('longitude').value);
-  
-  // Get equipment
-  const equipment = [];
-  document.querySelectorAll('#equipmentList input').forEach(input => {
-      if (input.value.trim() !== '') {
-          equipment.push(input.value.trim());
-      }
-  });
-  
-  // Get images (in a real app, you would upload these to a server)
-  const images = [];
-  document.querySelectorAll('#imagePreview img').forEach(img => {
-      images.push(img.src);
-  });
-  
-  // Check if we're editing or adding
-  const existingIndex = resourcesData.findIndex(r => r.id === id);
-  
-  if (existingIndex !== -1) {
-      // Update existing resource
-      resourcesData[existingIndex] = {
-          id,
-          name,
-          type,
-          capacity,
-          dayRate,
-          nightRate,
-          status,
-          description,
-          images: images.length > 0 ? images : resourcesData[existingIndex].images,
-          equipment,
-          latitude,
-          longitude
-      };
-  } else {
-      // Add new resource
-      resourcesData.push({
-          id,
-          name,
-          type,
-          capacity,
-          dayRate,
-          nightRate,
-          status,
-          description,
-          images: images.length > 0 ? images : ['/placeholder.svg?height=300&width=400'],
-          equipment,
-          latitude,
-          longitude
-      });
-  }
-  
-  // Update UI
-  filterResources();
-  closeResourceModal();
-  
-  // Show success message
-  alert(`Resource ${existingIndex !== -1 ? 'updated' : 'added'} successfully!`);
+async function saveResource(event) {
+    event.preventDefault();
+    
+    try {
+        showLoadingState('Saving resource...');
+        
+        // Get form data
+        const resourceId = document.getElementById('resourceId').value;
+        const resourceName = document.getElementById('resourceName').value;
+        const resourceType = document.getElementById('resourceType').value;
+        const capacity = parseInt(document.getElementById('capacity').value);
+        const status = document.getElementById('status').value;
+        const dayRate = parseFloat(document.getElementById('dayRate').value);
+        const nightRate = parseFloat(document.getElementById('nightRate').value);
+        const description = document.getElementById('description').value;
+        const latitude = parseFloat(document.getElementById('latitude').value);
+        const longitude = parseFloat(document.getElementById('longitude').value);
+        
+        // Get amenities
+        const amenities = [];
+        document.querySelectorAll('#equipmentList input').forEach(input => {
+            if (input.value.trim() !== '') {
+                amenities.push(input.value.trim());
+            }
+        });
+        
+        // Get images from preview
+        const images = [];
+        document.querySelectorAll('#imagePreview img').forEach(img => {
+            images.push(img.src);
+        });
+        
+        const resourceData = {
+            resource_name: resourceName.trim(),
+            resource_type: resourceType,
+            capacity: capacity,
+            status: status,
+            day_rate: dayRate,
+            night_rate: nightRate,
+            description: description.trim(),
+            latitude: latitude,
+            longitude: longitude,
+            images: images,
+            ammenities: amenities
+        };
+        
+        let data;
+        
+        if (resourceId) {
+            // Update existing resource
+            resourceData.resource_id = resourceId;
+            data = await makeApiRequest(ENDPOINT_URL, {
+                method: 'PUT',
+                body: resourceData
+            });
+        } else {
+            // Create new resource
+            data = await makeApiRequest(ENDPOINT_URL, {
+                method: 'POST',
+                body: resourceData
+            });
+        }
+        
+        if (data && data.success) {
+            showSuccess(`Resource ${resourceId ? 'updated' : 'created'} successfully!`);
+            closeResourceModal();
+            await loadResources(); // Reload resources list
+        } else {
+            throw new Error('Failed to save resource');
+        }
+    } catch (error) {
+        console.error('Error saving resource:', error);
+        showError('Failed to save resource: ' + error.message);
+    } finally {
+        hideLoadingState();
+    }
 }
 
 // Change resource status
-function changeResourceStatus(resourceId) {
-  const resource = resourcesData.find(r => r.id === resourceId);
-  if (!resource) return;
-  
-  // Cycle through statuses
-  const statuses = ['available', 'occupied', 'reserved', 'closed'];
-  const currentIndex = statuses.indexOf(resource.status);
-  const nextIndex = (currentIndex + 1) % statuses.length;
-  resource.status = statuses[nextIndex];
-  
-  // Update UI
-  filterResources();
-  
-  // Show status change message
-  alert(`Resource status changed to ${resource.status}`);
+async function changeResourceStatus(resourceId) {
+    const resource = allResources.find(r => r.resource_id === resourceId);
+    if (!resource) return;
+    
+    // Cycle through statuses
+    const statuses = ['available', 'occupied', 'reserved', 'closed'];
+    const currentIndex = statuses.indexOf(resource.status);
+    const nextIndex = (currentIndex + 1) % statuses.length;
+    const newStatus = statuses[nextIndex];
+    
+    try {
+        showLoadingState('Updating status...');
+        
+        const data = await makeApiRequest(ENDPOINT_URL, {
+            method: 'PUT',
+            body: {
+                resource_id: resourceId,
+                status: newStatus
+            }
+        });
+        
+        if (data && data.success) {
+            showSuccess(`Resource status changed to ${newStatus}`);
+            await loadResources(); // Reload resources list
+        } else {
+            throw new Error('Failed to update status');
+        }
+    } catch (error) {
+        console.error('Error updating status:', error);
+        showError('Failed to update status: ' + error.message);
+    } finally {
+        hideLoadingState();
+    }
 }
 
 // Update stats cards
 function updateStats() {
-  const total = filteredResources.length;
-  const available = filteredResources.filter(r => r.status === 'available').length;
-  const occupied = filteredResources.filter(r => r.status === 'occupied').length;
-  const maintenance = filteredResources.filter(r => r.status === 'closed').length;
-  
-  if (document.getElementById('totalResources')) {
-      document.getElementById('totalResources').textContent = total;
-  }
-  if (document.getElementById('availableResources')) {
-      document.getElementById('availableResources').textContent = available;
-  }
-  if (document.getElementById('occupiedResources')) {
-      document.getElementById('occupiedResources').textContent = occupied;
-  }
-  if (document.getElementById('maintenanceResources')) {
-      document.getElementById('maintenanceResources').textContent = maintenance;
-  }
+    const total = filteredResources.length;
+    const available = filteredResources.filter(r => r.status === 'available').length;
+    const occupied = filteredResources.filter(r => r.status === 'occupied').length;
+    const closed = filteredResources.filter(r => r.status === 'closed').length;
+    
+    if (document.getElementById('totalResources')) {
+        document.getElementById('totalResources').textContent = total;
+    }
+    if (document.getElementById('availableResources')) {
+        document.getElementById('availableResources').textContent = available;
+    }
+    if (document.getElementById('occupiedResources')) {
+        document.getElementById('occupiedResources').textContent = occupied;
+    }
+    if (document.getElementById('maintenanceResources')) {
+        document.getElementById('maintenanceResources').textContent = closed;
+    }
+}
+
+// UI Helper Functions
+function showLoadingState(message = 'Loading...') {
+    const submitBtn = resourceForm?.querySelector('button[type="submit"]');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + message;
+    }
+}
+
+function hideLoadingState() {
+    const submitBtn = resourceForm?.querySelector('button[type="submit"]');
+    if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Save Resource';
+    }
+}
+
+// SweetAlert 2 functions
+function showSuccess(message) {
+    Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: message,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+    });
+}
+
+function showError(message) {
+    Swal.fire({
+        icon: 'error',
+        title: 'Error!',
+        text: message,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 5000,
+        timerProgressBar: true,
+    });
 }

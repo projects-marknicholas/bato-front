@@ -5,174 +5,15 @@ AOS.init({
     once: true,
 });
 
-// Sample bookings data
-const bookingsData = [
-    {
-        id: "BK001",
-        guestName: "Maria Santos",
-        guestEmail: "maria.santos@email.com",
-        guestPhone: "+63 912 345 6789",
-        resource: "Deluxe Room",
-        resourceType: "room",
-        checkIn: "2024-01-15",
-        checkOut: "2024-01-18",
-        guests: 2,
-        amount: 7500,
-        status: "pending",
-        specialRequests: "I would like a room with a view of the pool.",
-        bookingDate: "2024-01-10",
-        paymentStatus: "pending"
-    },
-    {
-        id: "BK002",
-        guestName: "Juan Dela Cruz",
-        guestEmail: "juan.delacruz@email.com",
-        guestPhone: "+63 917 654 3210",
-        resource: "Family Cottage",
-        resourceType: "cottage",
-        checkIn: "2024-01-20",
-        checkOut: "2024-01-22",
-        guests: 4,
-        amount: 12000,
-        status: "confirmed",
-        specialRequests: "We need an extra bed for our child.",
-        bookingDate: "2024-01-12",
-        paymentStatus: "paid"
-    },
-    {
-        id: "BK003",
-        guestName: "Ana Rodriguez",
-        guestEmail: "ana.rodriguez@email.com",
-        guestPhone: "+63 918 765 4321",
-        resource: "Bamboo Hut",
-        resourceType: "hut",
-        checkIn: "2024-01-25",
-        checkOut: "2024-01-27",
-        guests: 2,
-        amount: 5400,
-        status: "completed",
-        specialRequests: "We are celebrating our anniversary.",
-        bookingDate: "2024-01-05",
-        paymentStatus: "paid"
-    },
-    {
-        id: "BK004",
-        guestName: "Carlos Mendoza",
-        guestEmail: "carlos.mendoza@email.com",
-        guestPhone: "+63 919 876 5432",
-        resource: "Pool Villa",
-        resourceType: "villa",
-        checkIn: "2024-02-01",
-        checkOut: "2024-02-05",
-        guests: 6,
-        amount: 25000,
-        status: "pending",
-        specialRequests: "We need early check-in if possible.",
-        bookingDate: "2024-01-14",
-        paymentStatus: "pending"
-    },
-    {
-        id: "BK005",
-        guestName: "Lisa Garcia",
-        guestEmail: "lisa.garcia@email.com",
-        guestPhone: "+63 920 987 6543",
-        resource: "Deluxe Room",
-        resourceType: "room",
-        checkIn: "2024-01-18",
-        checkOut: "2024-01-20",
-        guests: 2,
-        amount: 5000,
-        status: "cancelled",
-        specialRequests: "None",
-        bookingDate: "2024-01-08",
-        paymentStatus: "refunded"
-    },
-    {
-        id: "BK006",
-        guestName: "Roberto Silva",
-        guestEmail: "roberto.silva@email.com",
-        guestPhone: "+63 921 098 7654",
-        resource: "Family Cottage",
-        resourceType: "cottage",
-        checkIn: "2024-02-10",
-        checkOut: "2024-02-12",
-        guests: 5,
-        amount: 15000,
-        status: "confirmed",
-        specialRequests: "We have a baby, need a crib.",
-        bookingDate: "2024-01-13",
-        paymentStatus: "paid"
-    },
-    {
-        id: "BK007",
-        guestName: "Elena Reyes",
-        guestEmail: "elena.reyes@email.com",
-        guestPhone: "+63 922 109 8765",
-        resource: "Bamboo Hut",
-        resourceType: "hut",
-        checkIn: "2024-01-22",
-        checkOut: "2024-01-24",
-        guests: 2,
-        amount: 5400,
-        status: "completed",
-        specialRequests: "Vegetarian meals please.",
-        bookingDate: "2024-01-09",
-        paymentStatus: "paid"
-    },
-    {
-        id: "BK008",
-        guestName: "Miguel Torres",
-        guestEmail: "miguel.torres@email.com",
-        guestPhone: "+63 923 210 9876",
-        resource: "Pool Villa",
-        resourceType: "villa",
-        checkIn: "2024-02-15",
-        checkOut: "2024-02-20",
-        guests: 8,
-        amount: 37500,
-        status: "pending",
-        specialRequests: "We are a large family with children.",
-        bookingDate: "2024-01-15",
-        paymentStatus: "pending"
-    },
-    {
-        id: "BK009",
-        guestName: "Sofia Hernandez",
-        guestEmail: "sofia.hernandez@email.com",
-        guestPhone: "+63 924 321 0987",
-        resource: "Deluxe Room",
-        resourceType: "room",
-        checkIn: "2024-01-28",
-        checkOut: "2024-01-30",
-        guests: 2,
-        amount: 5000,
-        status: "confirmed",
-        specialRequests: "Honeymoon suite if available.",
-        bookingDate: "2024-01-11",
-        paymentStatus: "paid"
-    },
-    {
-        id: "BK010",
-        guestName: "David Lim",
-        guestEmail: "david.lim@email.com",
-        guestPhone: "+63 925 432 1098",
-        resource: "Family Cottage",
-        resourceType: "cottage",
-        checkIn: "2024-02-05",
-        checkOut: "2024-02-07",
-        guests: 4,
-        amount: 12000,
-        status: "pending",
-        specialRequests: "We will arrive late, around 10 PM.",
-        bookingDate: "2024-01-16",
-        paymentStatus: "pending"
-    }
-];
+// API Configuration
+const API_BASE_URL = window.CONFIG.API_BASE_URL;
+const ENDPOINT_URL = window.CONFIG.ENDPOINTS.ADMIN_BOOKINGS;
 
 // Global variables
 let currentPage = 1;
-const recordsPerPage = 5;
-let filteredBookings = [...bookingsData];
+const recordsPerPage = 10;
+let allBookings = [];
+let filteredBookings = [];
 
 // DOM Elements
 const sidebarToggle = document.getElementById('sidebarToggle');
@@ -194,119 +35,368 @@ const exportBtn = document.getElementById('exportBtn');
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function() {
-    updateStats();
-    renderTable();
+    initializeApp();
     setupEventListeners();
 });
 
 // Set up event listeners
 function setupEventListeners() {
     // Sidebar toggle
-    sidebarToggle.addEventListener('click', toggleSidebar);
-    sidebarOverlay.addEventListener('click', toggleSidebar);
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', toggleSidebar);
+    }
+    if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', toggleSidebar);
+    }
     
     // Filters
-    searchInput.addEventListener('input', filterBookings);
-    statusFilter.addEventListener('change', filterBookings);
-    resourceFilter.addEventListener('change', filterBookings);
-    dateFilter.addEventListener('change', filterBookings);
+    if (searchInput) {
+        searchInput.addEventListener('input', filterBookings);
+    }
+    if (statusFilter) {
+        statusFilter.addEventListener('change', filterBookings);
+    }
+    if (resourceFilter) {
+        resourceFilter.addEventListener('change', filterBookings);
+    }
+    if (dateFilter) {
+        dateFilter.addEventListener('change', filterBookings);
+    }
     
     // Modal
-    closeModal.addEventListener('click', closeBookingModal);
+    if (closeModal) {
+        closeModal.addEventListener('click', closeBookingModal);
+    }
     
     // Export button
-    exportBtn.addEventListener('click', exportBookings);
+    if (exportBtn) {
+        exportBtn.addEventListener('click', exportBookings);
+    }
     
     // Close modal when clicking outside
-    bookingModal.addEventListener('click', function(e) {
-        if (e.target === bookingModal) {
-            closeBookingModal();
-        }
-    });
+    if (bookingModal) {
+        bookingModal.addEventListener('click', function(e) {
+            if (e.target === bookingModal) {
+                closeBookingModal();
+            }
+        });
+    }
 }
 
 // Toggle sidebar on mobile
 function toggleSidebar() {
-    sidebar.classList.toggle('-translate-x-full');
-    sidebarOverlay.classList.toggle('active');
+    if (sidebar && sidebarOverlay) {
+        sidebar.classList.toggle('active');
+        sidebarOverlay.classList.toggle('active');
+    }
+}
+
+// Initialize application
+async function initializeApp() {
+    if (!checkAuthentication()) {
+        return;
+    }
+    
+    try {
+        await loadBookings();
+    } catch (error) {
+        console.error('Failed to initialize app:', error);
+        showError('Failed to load bookings data');
+    }
+}
+
+// Check if user is authenticated
+function checkAuthentication() {
+    const apiKey = getApiKey();
+    const csrfToken = getCsrfToken();
+    
+    if (!apiKey || !csrfToken) {
+        window.location.href = '../index.html';
+        return false;
+    }
+    return true;
+}
+
+// Get API key from localStorage
+function getApiKey() {
+    try {
+        const userData = localStorage.getItem('user');
+        if (userData) {
+            const user = JSON.parse(userData);
+            return user.api_key || null;
+        }
+    } catch (error) {
+        console.error('Error parsing user data from localStorage:', error);
+    }
+    return null;
+}
+
+// Get CSRF token from localStorage
+function getCsrfToken() {
+    try {
+        const userData = localStorage.getItem('user');
+        if (userData) {
+            const user = JSON.parse(userData);
+            return user.csrf_token || null;
+        }
+    } catch (error) {
+        console.error('Error parsing user data from localStorage:', error);
+    }
+    return null;
+}
+
+// API request helper
+async function makeApiRequest(endpoint, options = {}) {
+    const apiKey = getApiKey();
+    const csrfToken = getCsrfToken();
+
+    if (!apiKey) {
+        throw new Error('API key not found. Please sign in again.');
+    }
+
+    if (!csrfToken) {
+        throw new Error('CSRF token not found. Please sign in again.');
+    }
+
+    const defaultOptions = {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+            'X-CSRF-Token': csrfToken,
+        },
+    };
+
+    const config = {
+        ...defaultOptions,
+        ...options,
+        headers: {
+            ...defaultOptions.headers,
+            ...options.headers,
+        },
+    };
+
+    // If body is provided and it's an object, stringify it
+    if (config.body && typeof config.body === 'object') {
+        config.body = JSON.stringify(config.body);
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+        
+        if (response.status === 401) {
+            localStorage.removeItem('user');
+            window.location.href = '../index.html';
+            return;
+        }
+
+        if (response.status === 429) {
+            throw new Error('Rate limit exceeded. Please try again later.');
+        }
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'Unknown error' }));
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        }
+
+        return response.json();
+    } catch (error) {
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            throw new Error('Network error: Unable to connect to server');
+        }
+        throw error;
+    }
+}
+
+// Load bookings from backend
+async function loadBookings() {
+    try {
+        showLoadingState('Loading bookings...');
+        
+        // Build query parameters
+        const params = new URLSearchParams();
+        params.append('page', currentPage);
+        params.append('limit', recordsPerPage);
+        
+        if (searchInput && searchInput.value) {
+            params.append('search', searchInput.value);
+        }
+        
+        if (statusFilter && statusFilter.value !== 'all') {
+            params.append('status', statusFilter.value);
+        }
+        
+        const data = await makeApiRequest(`${ENDPOINT_URL}?${params.toString()}`);
+        
+        if (data && data.success) {
+            allBookings = data.data || [];
+            filteredBookings = [...allBookings];
+            
+            updateStats();
+            renderTable(data.pagination);
+        } else {
+            throw new Error('Failed to load bookings data');
+        }
+    } catch (error) {
+        console.error('Error loading bookings:', error);
+        showError('Failed to load bookings: ' + error.message);
+        
+        // Show empty state
+        allBookings = [];
+        filteredBookings = [];
+        updateStats();
+        renderTable();
+    } finally {
+        hideLoadingState();
+    }
 }
 
 // Filter bookings based on filters
 function filterBookings() {
-    const searchTerm = searchInput.value.toLowerCase();
-    const status = statusFilter.value;
-    const resource = resourceFilter.value;
-    const date = dateFilter.value;
-    
-    filteredBookings = bookingsData.filter(booking => {
-        // Search filter
-        const matchesSearch = 
-            booking.id.toLowerCase().includes(searchTerm) ||
-            booking.guestName.toLowerCase().includes(searchTerm) ||
-            booking.resource.toLowerCase().includes(searchTerm);
-        
-        // Status filter
-        const matchesStatus = status === 'all' || booking.status === status;
-        
-        // Resource filter
-        const matchesResource = resource === 'all' || 
-            booking.resource.toLowerCase().replace(' ', '-') === resource;
-        
-        // Date filter
-        let matchesDate = true;
-        if (date) {
-            matchesDate = booking.checkIn === date || booking.checkOut === date;
-        }
-        
-        return matchesSearch && matchesStatus && matchesResource && matchesDate;
-    });
-    
     currentPage = 1;
-    renderTable();
-    updateStats();
+    loadBookings();
+}
+
+// Format currency for display
+function formatCurrency(amount) {
+    if (!amount || amount === 0) return '₱0.00';
+    return `₱${parseFloat(amount).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+// Format date for display
+function formatDate(dateString) {
+    if (!dateString) return '-';
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+    } catch (e) {
+        return dateString;
+    }
+}
+
+// Format datetime for display (time only)
+function formatTime(dateString) {
+    if (!dateString) return '-';
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleTimeString('en-US', {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    } catch (e) {
+        return dateString;
+    }
+}
+
+// Get initials from name
+function getInitials(firstName, lastName) {
+    if (!firstName && !lastName) return '?';
+    return ((firstName?.[0] || '') + (lastName?.[0] || '')).toUpperCase();
+}
+
+// Calculate duration in days
+function calculateDuration(checkIn, checkOut) {
+    if (!checkIn || !checkOut) return 0;
+    try {
+        const start = new Date(checkIn);
+        const end = new Date(checkOut);
+        const diffTime = Math.abs(end - start);
+        return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    } catch (e) {
+        return 0;
+    }
 }
 
 // Render the table with current data
-function renderTable() {
-    // Calculate pagination
-    const totalPages = Math.ceil(filteredBookings.length / recordsPerPage);
-    const startIndex = (currentPage - 1) * recordsPerPage;
-    const endIndex = Math.min(startIndex + recordsPerPage, filteredBookings.length);
-    const currentBookings = filteredBookings.slice(startIndex, endIndex);
-    
-    // Update showing records info
-    showingFrom.textContent = filteredBookings.length > 0 ? startIndex + 1 : 0;
-    showingTo.textContent = endIndex;
-    totalRecords.textContent = filteredBookings.length;
+function renderTable(paginationData = null) {
+    if (!bookingsTableBody) {
+        console.error('Table body element not found');
+        return;
+    }
     
     // Clear table body
     bookingsTableBody.innerHTML = '';
     
-    // Populate table rows with AOS animations
-    currentBookings.forEach((booking, index) => {
+    // Check if there are bookings to display
+    if (!filteredBookings || filteredBookings.length === 0) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td colspan="9" class="text-center py-8 text-gray-500">
+                <i class="fas fa-calendar-times text-4xl mb-4 block"></i>
+                No bookings found
+            </td>
+        `;
+        bookingsTableBody.appendChild(row);
+        
+        // Update showing records info
+        updateShowingInfo(0, paginationData);
+        return;
+    }
+    
+    // Populate table rows
+    filteredBookings.forEach((booking, index) => {
         const row = document.createElement('tr');
         row.setAttribute('data-aos', 'fade-up');
-        row.setAttribute('data-aos-delay', (index % 5) * 100);
+        row.setAttribute('data-aos-delay', (index % 10) * 50);
+        
+        // Generate a temporary booking ID if not provided by API
+        const bookingId = booking.booking_id || `temp_${index}`;
+        const firstName = booking.first_name || '';
+        const lastName = booking.last_name || '';
+        const fullName = `${firstName} ${lastName}`.trim() || 'Unknown Guest';
+        const resourceName = booking.resource_name || 'Unknown Resource';
+        const checkIn = booking.check_in;
+        const checkOut = booking.check_out;
+        const guests = booking.guests || 0;
+        const status = booking.status || 'pending';
+        const paymentStatus = booking.payment_status || 'pending';
+        const amount = booking.amount || 0;
+        const duration = calculateDuration(checkIn, checkOut);
         
         row.innerHTML = `
-            <td class="font-medium">${booking.id}</td>
-            <td>${booking.guestName}</td>
-            <td>${booking.resource}</td>
-            <td>${formatDate(booking.checkIn)}</td>
-            <td>${formatDate(booking.checkOut)}</td>
-            <td>${booking.guests}</td>
-            <td class="font-semibold">₱${booking.amount.toLocaleString()}</td>
-            <td><span class="status-badge status-${booking.status}">${booking.status}</span></td>
+            <td>
+                <div class="flex items-center">
+                    <div class="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mr-3">
+                        <span class="text-white font-semibold text-sm">${getInitials(firstName, lastName)}</span>
+                    </div>
+                    <div>
+                        <div class="font-medium">${fullName}</div>
+                        <div class="text-xs text-gray-500">${guests} guest${guests !== 1 ? 's' : ''}</div>
+                    </div>
+                </div>
+            </td>
+            <td>${resourceName}</td>
+            <td>
+                <div>${formatDate(checkIn)}</div>
+                <div class="text-xs text-gray-500">${formatTime(checkIn)}</div>
+            </td>
+            <td>
+                <div>${formatDate(checkOut)}</div>
+                <div class="text-xs text-gray-500">${formatTime(checkOut)}</div>
+            </td>
+            <td class="font-semibold">
+                ${formatCurrency(amount)}
+            </td>
+            <td>
+                <span class="status-badge status-${status}">${status}</span>
+                ${paymentStatus === 'paid' ? 
+                    '<div class="text-xs text-green-600 mt-1">Paid</div>' : 
+                    '<div class="text-xs text-yellow-600 mt-1">Pending</div>'
+                }
+            </td>
             <td>
                 <div class="action-buttons">
-                    <button class="view-details btn-primary text-sm" data-id="${booking.id}">
+                    <button class="view-details btn-primary text-sm" data-booking='${JSON.stringify(booking).replace(/'/g, "&apos;")}'>
                         <i class="fas fa-eye mr-1"></i> View
                     </button>
-                    ${booking.status === 'pending' ? `
-                        <button class="confirm-booking btn-secondary text-sm" data-id="${booking.id}">
+                    ${status === 'pending' ? `
+                        <button class="confirm-booking btn-secondary text-sm" data-booking='${JSON.stringify({...booking, booking_id: bookingId}).replace(/'/g, "&apos;")}'>
                             <i class="fas fa-check mr-1"></i> Accept
                         </button>
-                        <button class="reject-booking btn-danger text-sm" data-id="${booking.id}">
+                        <button class="reject-booking btn-danger text-sm" data-booking='${JSON.stringify({...booking, booking_id: bookingId}).replace(/'/g, "&apos;")}'>
                             <i class="fas fa-times mr-1"></i> Reject
                         </button>
                     ` : ''}
@@ -319,179 +409,274 @@ function renderTable() {
     // Add event listeners to action buttons
     document.querySelectorAll('.view-details').forEach(button => {
         button.addEventListener('click', function() {
-            const bookingId = this.getAttribute('data-id');
-            showBookingDetails(bookingId);
+            const bookingData = JSON.parse(this.getAttribute('data-booking'));
+            showBookingDetails(bookingData);
         });
     });
     
     document.querySelectorAll('.confirm-booking').forEach(button => {
         button.addEventListener('click', function() {
-            const bookingId = this.getAttribute('data-id');
-            updateBookingStatus(bookingId, 'confirmed');
+            const bookingData = JSON.parse(this.getAttribute('data-booking'));
+            updateBookingStatus(bookingData, 'confirmed');
         });
     });
     
     document.querySelectorAll('.reject-booking').forEach(button => {
         button.addEventListener('click', function() {
-            const bookingId = this.getAttribute('data-id');
-            updateBookingStatus(bookingId, 'cancelled');
+            const bookingData = JSON.parse(this.getAttribute('data-booking'));
+            updateBookingStatus(bookingData, 'cancelled');
         });
     });
     
-    // Render pagination
-    renderPagination(totalPages);
+    document.querySelectorAll('.complete-booking').forEach(button => {
+        button.addEventListener('click', function() {
+            const bookingData = JSON.parse(this.getAttribute('data-booking'));
+            updateBookingStatus(bookingData, 'completed');
+        });
+    });
+    
+    // Update showing info and pagination
+    updateShowingInfo(filteredBookings.length, paginationData);
+    renderPagination(paginationData);
     
     // Reinitialize AOS for new elements
-    AOS.refresh();
+    if (typeof AOS !== 'undefined') {
+        AOS.refresh();
+    }
+}
+
+// Update showing records info
+function updateShowingInfo(currentItemsCount, paginationData) {
+    if (!paginationData) {
+        if (showingFrom) showingFrom.textContent = currentItemsCount > 0 ? '1' : '0';
+        if (showingTo) showingTo.textContent = currentItemsCount;
+        if (totalRecords) totalRecords.textContent = currentItemsCount;
+        return;
+    }
+    
+    const startIndex = (paginationData.current_page - 1) * paginationData.per_page + 1;
+    const endIndex = Math.min(startIndex + currentItemsCount - 1, paginationData.total_items);
+    
+    if (showingFrom) showingFrom.textContent = startIndex;
+    if (showingTo) showingTo.textContent = endIndex;
+    if (totalRecords) totalRecords.textContent = paginationData.total_items;
 }
 
 // Render pagination controls
-function renderPagination(totalPages) {
+function renderPagination(paginationData) {
+    if (!pagination) return;
+    
     pagination.innerHTML = '';
+    
+    if (!paginationData || paginationData.total_pages <= 1) {
+        return;
+    }
     
     // Previous button
     const prevButton = document.createElement('button');
-    prevButton.className = `page-btn ${currentPage === 1 ? 'disabled' : ''}`;
+    prevButton.className = `page-btn ${!paginationData.has_prev ? 'disabled' : ''}`;
     prevButton.innerHTML = '<i class="fas fa-chevron-left"></i>';
-    prevButton.disabled = currentPage === 1;
+    prevButton.disabled = !paginationData.has_prev;
     prevButton.addEventListener('click', () => {
-        if (currentPage > 1) {
-            currentPage--;
-            renderTable();
+        if (paginationData.has_prev) {
+            currentPage = paginationData.current_page - 1;
+            loadBookings();
         }
     });
     pagination.appendChild(prevButton);
     
     // Page buttons
-    for (let i = 1; i <= totalPages; i++) {
+    for (let i = 1; i <= paginationData.total_pages; i++) {
         const pageButton = document.createElement('button');
-        pageButton.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+        pageButton.className = `page-btn ${i === paginationData.current_page ? 'active' : ''}`;
         pageButton.textContent = i;
         pageButton.addEventListener('click', () => {
             currentPage = i;
-            renderTable();
+            loadBookings();
         });
         pagination.appendChild(pageButton);
     }
     
     // Next button
     const nextButton = document.createElement('button');
-    nextButton.className = `page-btn ${currentPage === totalPages ? 'disabled' : ''}`;
+    nextButton.className = `page-btn ${!paginationData.has_next ? 'disabled' : ''}`;
     nextButton.innerHTML = '<i class="fas fa-chevron-right"></i>';
-    nextButton.disabled = currentPage === totalPages;
+    nextButton.disabled = !paginationData.has_next;
     nextButton.addEventListener('click', () => {
-        if (currentPage < totalPages) {
-            currentPage++;
-            renderTable();
+        if (paginationData.has_next) {
+            currentPage = paginationData.current_page + 1;
+            loadBookings();
         }
     });
     pagination.appendChild(nextButton);
 }
 
 // Show booking details in modal
-function showBookingDetails(bookingId) {
-    const booking = bookingsData.find(b => b.id === bookingId);
-    if (!booking) return;
+function showBookingDetails(booking) {
+    const bookingId = booking.booking_id || 'Unknown';
+    const firstName = booking.first_name || '';
+    const lastName = booking.last_name || '';
+    const fullName = `${firstName} ${lastName}`.trim() || 'Unknown Guest';
+    const resourceName = booking.resource_name || 'Unknown Resource';
+    const checkIn = booking.check_in;
+    const checkOut = booking.check_out;
+    const guests = booking.guests || 0;
+    const status = booking.status || 'pending';
+    const paymentStatus = booking.payment_status || 'pending';
+    const amount = booking.amount || 0;
+    const specialRequest = booking.special_request || 'No special requests';
+    const duration = calculateDuration(checkIn, checkOut);
+    const bookingDate = booking.created_at || 'Unknown';
     
-    bookingDetails.innerHTML = `
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div>
-                <h4 class="font-semibold text-gray-700 mb-2">Guest Information</h4>
-                <p><strong>Name:</strong> ${booking.guestName}</p>
-                <p><strong>Email:</strong> ${booking.guestEmail}</p>
-                <p><strong>Phone:</strong> ${booking.guestPhone}</p>
+    if (bookingDetails) {
+        bookingDetails.innerHTML = `
+            <div class="flex items-center gap-4 mb-6">
+                <div class="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center">
+                    <span class="text-white font-semibold text-xl">${getInitials(firstName, lastName)}</span>
+                </div>
+                <div>
+                    <h3 class="text-xl font-bold">${fullName}</h3>
+                    <p class="text-gray-600">${guests} guest${guests !== 1 ? 's' : ''} • ${duration} night${duration !== 1 ? 's' : ''}</p>
+                </div>
             </div>
-            <div>
-                <h4 class="font-semibold text-gray-700 mb-2">Booking Information</h4>
-                <p><strong>Booking ID:</strong> ${booking.id}</p>
-                <p><strong>Booking Date:</strong> ${formatDate(booking.bookingDate)}</p>
-                <p><strong>Status:</strong> <span class="status-badge status-${booking.status}">${booking.status}</span></p>
-                <p><strong>Payment Status:</strong> ${booking.paymentStatus}</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <h4 class="font-semibold text-gray-700 mb-2">Booking Information</h4>
+                    <p class="mb-2"><strong>Booking ID:</strong> ${bookingId}</p>
+                    <p class="mb-2"><strong>Resource:</strong> ${resourceName}</p>
+                    <p class="mb-2"><strong>Check-in:</strong> ${formatDate(checkIn)} at ${formatTime(checkIn)}</p>
+                    <p class="mb-2"><strong>Check-out:</strong> ${formatDate(checkOut)} at ${formatTime(checkOut)}</p>
+                    <p class="mb-2"><strong>Duration:</strong> ${duration} night${duration !== 1 ? 's' : ''}</p>
+                    <p><strong>Booking Date:</strong> ${formatDate(bookingDate)}</p>
+                </div>
+                <div>
+                    <h4 class="font-semibold text-gray-700 mb-2">Status & Payment</h4>
+                    <p class="mb-2"><strong>Status:</strong> <span class="status-badge status-${status}">${status}</span></p>
+                    <p class="mb-2"><strong>Payment Status:</strong> ${paymentStatus === 'paid' ? '<span class="text-green-600 font-semibold">Paid</span>' : '<span class="text-yellow-600 font-semibold">Pending</span>'}</p>
+                    <p class="mb-2"><strong>Number of Guests:</strong> ${guests}</p>
+                    <p><strong>Total Amount:</strong> <span class="font-bold text-lg">${formatCurrency(amount)}</span></p>
+                </div>
             </div>
-        </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            <div>
-                <h4 class="font-semibold text-gray-700 mb-2">Reservation Details</h4>
-                <p><strong>Resource:</strong> ${booking.resource}</p>
-                <p><strong>Check-in:</strong> ${formatDate(booking.checkIn)}</p>
-                <p><strong>Check-out:</strong> ${formatDate(booking.checkOut)}</p>
-                <p><strong>Number of Guests:</strong> ${booking.guests}</p>
-                <p><strong>Total Amount:</strong> ₱${booking.amount.toLocaleString()}</p>
-            </div>
-            <div>
+            
+            <div class="mb-6">
                 <h4 class="font-semibold text-gray-700 mb-2">Special Requests</h4>
-                <p>${booking.specialRequests || 'No special requests'}</p>
+                <p class="text-gray-700 bg-gray-50 p-3 rounded-lg">${specialRequest}</p>
             </div>
-        </div>
+            
+            <div class="flex justify-end gap-4 mt-8">
+                ${status === 'pending' ? `
+                    <button class="confirm-booking-modal btn-primary" data-booking='${JSON.stringify({...booking, booking_id: bookingId}).replace(/'/g, "&apos;")}'>
+                        <i class="fas fa-check mr-2"></i> Accept Booking
+                    </button>
+                    <button class="reject-booking-modal btn-danger" data-booking='${JSON.stringify({...booking, booking_id: bookingId}).replace(/'/g, "&apos;")}'>
+                        <i class="fas fa-times mr-2"></i> Reject Booking
+                    </button>
+                ` : ''}
+                ${status === 'confirmed' ? `
+                    <button class="complete-booking-modal btn-secondary" data-booking='${JSON.stringify({...booking, booking_id: bookingId}).replace(/'/g, "&apos;")}'>
+                        <i class="fas fa-flag-checkered mr-2"></i> Mark Complete
+                    </button>
+                ` : ''}
+                <button class="close-modal-btn btn-secondary">
+                    Close
+                </button>
+            </div>
+        `;
         
-        <div class="flex justify-end gap-4 mt-8">
-            ${booking.status === 'pending' ? `
-                <button class="confirm-booking-modal btn-primary" data-id="${booking.id}">
-                    <i class="fas fa-check mr-2"></i> Accept Booking
-                </button>
-                <button class="reject-booking-modal btn-danger" data-id="${booking.id}">
-                    <i class="fas fa-times mr-2"></i> Reject Booking
-                </button>
-            ` : ''}
-            <button class="close-modal-btn btn-secondary">
-                Close
-            </button>
-        </div>
-    `;
-    
-    // Add event listeners to modal buttons
-    const confirmBtn = bookingDetails.querySelector('.confirm-booking-modal');
-    const rejectBtn = bookingDetails.querySelector('.reject-booking-modal');
-    const closeBtn = bookingDetails.querySelector('.close-modal-btn');
-    
-    if (confirmBtn) {
-        confirmBtn.addEventListener('click', function() {
-            const bookingId = this.getAttribute('data-id');
-            updateBookingStatus(bookingId, 'confirmed');
-            closeBookingModal();
-        });
+        // Add event listeners to modal buttons
+        const confirmBtn = bookingDetails.querySelector('.confirm-booking-modal');
+        const rejectBtn = bookingDetails.querySelector('.reject-booking-modal');
+        const completeBtn = bookingDetails.querySelector('.complete-booking-modal');
+        const closeBtn = bookingDetails.querySelector('.close-modal-btn');
+        
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', function() {
+                const bookingData = JSON.parse(this.getAttribute('data-booking'));
+                updateBookingStatus(bookingData, 'confirmed');
+                closeBookingModal();
+            });
+        }
+        
+        if (rejectBtn) {
+            rejectBtn.addEventListener('click', function() {
+                const bookingData = JSON.parse(this.getAttribute('data-booking'));
+                updateBookingStatus(bookingData, 'cancelled');
+                closeBookingModal();
+            });
+        }
+        
+        if (completeBtn) {
+            completeBtn.addEventListener('click', function() {
+                const bookingData = JSON.parse(this.getAttribute('data-booking'));
+                updateBookingStatus(bookingData, 'completed');
+                closeBookingModal();
+            });
+        }
+        
+        if (closeBtn) {
+            closeBtn.addEventListener('click', closeBookingModal);
+        }
     }
-    
-    if (rejectBtn) {
-        rejectBtn.addEventListener('click', function() {
-            const bookingId = this.getAttribute('data-id');
-            updateBookingStatus(bookingId, 'cancelled');
-            closeBookingModal();
-        });
-    }
-    
-    closeBtn.addEventListener('click', closeBookingModal);
     
     // Show modal
-    bookingModal.classList.add('active');
+    if (bookingModal) {
+        bookingModal.classList.add('active');
+    }
 }
 
 // Close booking modal
 function closeBookingModal() {
-    bookingModal.classList.remove('active');
+    if (bookingModal) {
+        bookingModal.classList.remove('active');
+    }
 }
 
 // Update booking status
-function updateBookingStatus(bookingId, newStatus) {
-    const bookingIndex = bookingsData.findIndex(b => b.id === bookingId);
-    if (bookingIndex !== -1) {
-        bookingsData[bookingIndex].status = newStatus;
+async function updateBookingStatus(booking, newStatus) {
+    try {
+        const bookingId = booking.booking_id;
         
-        // If confirming, set payment status to paid
+        if (!bookingId) {
+            showError('Cannot update booking: Booking ID not found');
+            return;
+        }
+
+        // Map frontend status to backend status
+        let backendStatus = newStatus;
+        let paymentStatus = booking.payment_status;
+        
+        // Handle "completed" status (convert to "confirmed" for backend)
+        if (newStatus === 'completed') {
+            backendStatus = 'confirmed';
+        }
+        
+        // Auto-update payment status when confirming
         if (newStatus === 'confirmed') {
-            bookingsData[bookingIndex].paymentStatus = 'paid';
+            paymentStatus = 'paid';
+        }
+
+        const updateData = {
+            booking_id: bookingId,
+            status: backendStatus,
+            payment_status: paymentStatus
+        };
+        
+        const response = await makeApiRequest(ENDPOINT_URL, {
+            method: 'PUT',
+            body: updateData
+        });
+
+        if (response && response.success) {
+            showSuccess(`Booking ${bookingId} status updated to ${newStatus}`);
+            await loadBookings(); // Reload bookings to reflect changes
+        } else {
+            throw new Error(response?.error || 'Failed to update booking');
         }
         
-        // If rejecting, set payment status to refunded if it was paid
-        if (newStatus === 'cancelled' && bookingsData[bookingIndex].paymentStatus === 'paid') {
-            bookingsData[bookingIndex].paymentStatus = 'refunded';
-        }
-        
-        filterBookings();
-        
-        // Show confirmation message
-        alert(`Booking ${bookingId} has been ${newStatus}.`);
+    } catch (error) {
+        console.error('Error updating booking status:', error);
+        showError('Failed to update booking status: ' + error.message);
     }
 }
 
@@ -502,45 +687,95 @@ function updateStats() {
     const confirmed = filteredBookings.filter(b => b.status === 'confirmed').length;
     const cancelled = filteredBookings.filter(b => b.status === 'cancelled').length;
     
-    document.getElementById('totalBookings').textContent = total;
-    document.getElementById('pendingBookings').textContent = pending;
-    document.getElementById('confirmedBookings').textContent = confirmed;
-    document.getElementById('cancelledBookings').textContent = cancelled;
-}
-
-// Format date for display
-function formatDate(dateString) {
-    const options = { year: 'numeric', month: 'short', day: 'numeric' };
-    return new Date(dateString).toLocaleDateString('en-US', options);
+    if (document.getElementById('totalBookings')) {
+        document.getElementById('totalBookings').textContent = total;
+    }
+    if (document.getElementById('pendingBookings')) {
+        document.getElementById('pendingBookings').textContent = pending;
+    }
+    if (document.getElementById('confirmedBookings')) {
+        document.getElementById('confirmedBookings').textContent = confirmed;
+    }
+    if (document.getElementById('cancelledBookings')) {
+        document.getElementById('cancelledBookings').textContent = cancelled;
+    }
 }
 
 // Export bookings to CSV
 function exportBookings() {
-    // Simple CSV export implementation
-    const headers = ['Booking ID', 'Guest Name', 'Resource', 'Check-in', 'Check-out', 'Guests', 'Amount', 'Status'];
-    const csvContent = [
-        headers.join(','),
-        ...filteredBookings.map(booking => [
-            booking.id,
-            `"${booking.guestName}"`,
-            `"${booking.resource}"`,
-            booking.checkIn,
-            booking.checkOut,
-            booking.guests,
-            booking.amount,
-            booking.status
-        ].join(','))
-    ].join('\n');
-    
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `batospring-bookings-${new Date().toISOString().split('T')[0]}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    alert('Bookings exported successfully!');
+    try {
+        const headers = ['Booking ID', 'Guest Name', 'Resource', 'Check-in', 'Check-out', 'Guests', 'Amount', 'Status', 'Payment Status', 'Special Requests'];
+        const csvContent = [
+            headers.join(','),
+            ...filteredBookings.map(booking => {
+                const firstName = booking.first_name || '';
+                const lastName = booking.last_name || '';
+                const fullName = `${firstName} ${lastName}`.trim();
+                const bookingId = booking.booking_id || 'Unknown';
+                
+                return [
+                    `"${bookingId}"`,
+                    `"${fullName}"`,
+                    `"${booking.resource_name || ''}"`,
+                    booking.check_in || '',
+                    booking.check_out || '',
+                    booking.guests || 0,
+                    booking.amount || 0,
+                    booking.status || '',
+                    booking.payment_status || '',
+                    `"${(booking.special_request || '').replace(/"/g, '""')}"`
+                ].join(',');
+            })
+        ].join('\n');
+        
+        const blob = new Blob([csvContent], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `batospring-bookings-${new Date().toISOString().split('T')[0]}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        showSuccess('Bookings exported successfully!');
+    } catch (error) {
+        console.error('Error exporting bookings:', error);
+        showError('Failed to export bookings');
+    }
+}
+
+// UI Helper Functions
+function showLoadingState(message = 'Loading...') {
+}
+
+function hideLoadingState() {
+    // Hide loading indicator
+}
+
+// SweetAlert 2 functions
+function showSuccess(message) {
+    Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: message,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+    });
+}
+
+function showError(message) {
+    Swal.fire({
+        icon: 'error',
+        title: 'Error!',
+        text: message,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 5000,
+        timerProgressBar: true,
+    });
 }

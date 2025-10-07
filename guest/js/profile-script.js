@@ -7,7 +7,7 @@ AOS.init({
 
 // API Configuration
 const API_BASE_URL = window.CONFIG.API_BASE_URL;
-const ENDPOINT_URL = window.CONFIG.ENDPOINTS.ADMIN_PROFILE;
+const ENDPOINT_URL = window.CONFIG.ENDPOINTS.GUEST_PROFILE;
 let userData = null;
 
 // DOM Elements

@@ -5,61 +5,14 @@ AOS.init({
     once: true,
 });
 
-// Sample news data
-const newsData = [
-    {
-        id: "NEWS001",
-        title: "Summer Festival at BatoSpring",
-        description: "Join us for our annual summer festival with live music, food stalls, and family activities!",
-        image: "https://via.placeholder.com/300x200",
-        datePosted: "2025-09-20",
-        eventDate: "2025-10-01",
-        status: "published"
-    },
-    {
-        id: "NEWS002",
-        title: "New Spa Facilities Opening",
-        description: "We are excited to announce the opening of our new spa facilities with exclusive treatments.",
-        image: "https://via.placeholder.com/300x200",
-        datePosted: "2025-09-15",
-        eventDate: "",
-        status: "published"
-    },
-    {
-        id: "NEWS003",
-        title: "Winter Retreat Package",
-        description: "Book our winter retreat package for a cozy getaway with special discounts.",
-        image: "https://via.placeholder.com/300x200",
-        datePosted: "2025-09-10",
-        eventDate: "",
-        status: "draft"
-    },
-    {
-        id: "NEWS004",
-        title: "Yoga Retreat Weekend",
-        description: "Join our yoga retreat for a relaxing weekend with expert instructors.",
-        image: "https://via.placeholder.com/300x200",
-        datePosted: "2025-09-05",
-        eventDate: "2025-09-25",
-        status: "published"
-    },
-    {
-        id: "NEWS005",
-        title: "New Year Celebration Plans",
-        description: "Get ready for our spectacular New Year celebration with fireworks and entertainment.",
-        image: "https://via.placeholder.com/300x200",
-        datePosted: "2025-09-01",
-        eventDate: "2025-12-31",
-        status: "draft"
-    }
-];
+// API Configuration
+const API_BASE_URL = window.CONFIG.API_BASE_URL;
+const ENDPOINT_URL = window.CONFIG.ENDPOINTS.ADMIN_NEWS;
 
 // Global variables
 let currentPage = 1;
-const recordsPerPage = 5;
-let filteredNews = [];
-let sortField = 'title';
-let sortDirection = 'asc';
+const recordsPerPage = 10;
+let allNews = [];
 
 // DOM Elements
 const sidebarToggle = document.getElementById('sidebarToggle');
@@ -83,15 +36,8 @@ const imagePreview = document.getElementById('imagePreview');
 
 // Initialize the page
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize data
-    filteredNews = [...newsData];
-    
-    updateStats();
-    sortNews();
-    renderTable();
+    initializeApp();
     setupEventListeners();
-    
-    console.log('Page initialized with', newsData.length, 'news posts');
 });
 
 // Set up event listeners
@@ -110,17 +56,6 @@ function setupEventListeners() {
     }
     if (statusFilter) {
         statusFilter.addEventListener('change', filterNews);
-    }
-    
-    // Sorting
-    const sortableHeaders = document.querySelectorAll('th[data-sort]');
-    if (sortableHeaders.length > 0) {
-        sortableHeaders.forEach(th => {
-            th.addEventListener('click', function() {
-                const field = this.getAttribute('data-sort');
-                sortNews(field);
-            });
-        });
     }
     
     // Modal
@@ -171,75 +106,177 @@ function toggleSidebar() {
     }
 }
 
-// Sort news by specified field
-function sortNews(field = null) {
-    if (field) {
-        if (sortField === field) {
-            sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-        } else {
-            sortField = field;
-            sortDirection = 'asc';
-        }
+// Initialize application
+async function initializeApp() {
+    if (!checkAuthentication()) {
+        return;
     }
     
-    filteredNews.sort((a, b) => {
-        let aValue = a[sortField];
-        let bValue = b[sortField];
-        
-        if (sortField === 'title') {
-            aValue = a.title.toLowerCase();
-            bValue = b.title.toLowerCase();
-        } else if (sortField === 'datePosted') {
-            aValue = new Date(a.datePosted);
-            bValue = new Date(b.datePosted);
-        }
-        
-        if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-        if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
-        return 0;
-    });
+    try {
+        await loadNews();
+    } catch (error) {
+        console.error('Failed to initialize app:', error);
+        showError('Failed to load news data');
+    }
+}
+
+// Check if user is authenticated
+function checkAuthentication() {
+    const apiKey = getApiKey();
+    const csrfToken = getCsrfToken();
     
-    // Update sort indicators
-    const sortableHeaders = document.querySelectorAll('th[data-sort]');
-    if (sortableHeaders.length > 0) {
-        sortableHeaders.forEach(th => {
-            const indicator = th.querySelector('.sort-indicator');
-            if (th.getAttribute('data-sort') === sortField) {
-                if (!indicator) {
-                    const newIndicator = document.createElement('span');
-                    newIndicator.className = 'sort-indicator';
-                    th.appendChild(newIndicator);
-                }
-                th.querySelector('.sort-indicator').textContent = sortDirection === 'asc' ? '↑' : '↓';
-            } else {
-                if (indicator) indicator.textContent = '';
+    if (!apiKey || !csrfToken) {
+        window.location.href = '../index.html';
+        return false;
+    }
+    return true;
+}
+
+// Get API key from localStorage
+function getApiKey() {
+    try {
+        const userData = localStorage.getItem('user');
+        if (userData) {
+            const user = JSON.parse(userData);
+            return user.api_key || null;
+        }
+    } catch (error) {
+        console.error('Error parsing user data from localStorage:', error);
+    }
+    return null;
+}
+
+// Get CSRF token from localStorage
+function getCsrfToken() {
+    try {
+        const userData = localStorage.getItem('user');
+        if (userData) {
+            const user = JSON.parse(userData);
+            return user.csrf_token || null;
+        }
+    } catch (error) {
+        console.error('Error parsing user data from localStorage:', error);
+    }
+    return null;
+}
+
+// API request helper
+async function makeApiRequest(endpoint, options = {}) {
+    const apiKey = getApiKey();
+    const csrfToken = getCsrfToken();
+
+    if (!apiKey) {
+        throw new Error('API key not found. Please sign in again.');
+    }
+
+    if (!csrfToken) {
+        throw new Error('CSRF token not found. Please sign in again.');
+    }
+
+    const defaultOptions = {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+            'X-CSRF-Token': csrfToken,
+        },
+    };
+
+    const config = {
+        ...defaultOptions,
+        ...options,
+        headers: {
+            ...defaultOptions.headers,
+            ...options.headers,
+        },
+    };
+
+    // If body is provided and it's an object, stringify it
+    if (config.body && typeof config.body === 'object') {
+        config.body = JSON.stringify(config.body);
+    }
+
+    try {
+        const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+        
+        // Log the raw response for debugging
+        const responseText = await response.text();
+        
+        if (response.status === 401) {
+            localStorage.removeItem('user');
+            window.location.href = '../index.html';
+            return;
+        }
+
+        if (response.status === 429) {
+            throw new Error('Rate limit exceeded. Please try again later.');
+        }
+
+        if (!response.ok) {
+            // Try to parse as JSON, but fall back to text if it fails
+            let errorData;
+            try {
+                errorData = JSON.parse(responseText);
+            } catch {
+                errorData = { error: responseText || 'Unknown error' };
             }
-        });
+            throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        }
+
+        // Parse the successful response
+        return JSON.parse(responseText);
+    } catch (error) {
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            throw new Error('Network error: Unable to connect to server');
+        }
+        throw error;
     }
-    
-    renderTable();
+}
+
+// Load news from backend
+async function loadNews() {
+    try {
+        showLoadingState('Loading news...');
+        
+        // Build query parameters
+        const params = new URLSearchParams();
+        params.append('page', currentPage);
+        params.append('limit', recordsPerPage);
+        
+        if (searchInput && searchInput.value) {
+            params.append('search', searchInput.value);
+        }
+        
+        if (statusFilter && statusFilter.value && statusFilter.value !== 'all') {
+            params.append('status', statusFilter.value);
+        }
+        
+        const data = await makeApiRequest(`${ENDPOINT_URL}?${params.toString()}`);
+        
+        if (data && data.success) {
+            allNews = data.data || [];
+            
+            updateStats();
+            renderTable(data.pagination);
+        } else {
+            throw new Error('Failed to load news data');
+        }
+    } catch (error) {
+        console.error('Error loading news:', error);
+        showError('Failed to load news: ' + error.message);
+        
+        // Show empty state
+        allNews = [];
+        updateStats();
+        renderTable();
+    } finally {
+        hideLoadingState();
+    }
 }
 
 // Filter news based on filters
 function filterNews() {
-    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
-    const status = statusFilter ? statusFilter.value : 'all';
-    
-    filteredNews = newsData.filter(news => {
-        // Search filter
-        const matchesSearch = 
-            news.title.toLowerCase().includes(searchTerm) ||
-            news.description.toLowerCase().includes(searchTerm);
-        
-        // Status filter
-        const matchesStatus = status === 'all' || news.status === status;
-        
-        return matchesSearch && matchesStatus;
-    });
-    
     currentPage = 1;
-    sortNews();
-    updateStats();
+    loadNews();
 }
 
 // Get status badge
@@ -249,58 +286,80 @@ function getStatusBadge(status) {
     } else if (status === 'draft') {
         return `<span class="status-badge status-draft">Draft</span>`;
     }
+    return `<span class="status-badge">${status}</span>`;
+}
+
+// Format date for display
+function formatDate(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    });
 }
 
 // Render the table with current data
-function renderTable() {
+function renderTable(paginationData = null) {
     if (!newsTableBody) {
         console.error('Table body element not found');
         return;
     }
     
-    // Calculate pagination
-    const totalPages = Math.ceil(filteredNews.length / recordsPerPage);
-    const startIndex = (currentPage - 1) * recordsPerPage;
-    const endIndex = Math.min(startIndex + recordsPerPage, filteredNews.length);
-    const currentNews = filteredNews.slice(startIndex, endIndex);
-    
-    // Update showing records info
-    if (showingFrom) showingFrom.textContent = filteredNews.length > 0 ? startIndex + 1 : 0;
-    if (showingTo) showingTo.textContent = endIndex;
-    if (totalRecords) totalRecords.textContent = filteredNews.length;
-    
     // Clear table body
     newsTableBody.innerHTML = '';
     
     // Check if there are news posts to display
-    if (currentNews.length === 0) {
+    if (!allNews || allNews.length === 0) {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td colspan="4" class="text-center py-8 text-gray-500">
                 <i class="fas fa-newspaper text-4xl mb-4 block"></i>
-                No news posts found matching your criteria
+                No news posts found
             </td>
         `;
         newsTableBody.appendChild(row);
+        
+        // Update showing records info
+        updateShowingInfo(0, 0, paginationData);
         return;
     }
     
-    // Populate table rows with AOS animations
-    currentNews.forEach((news, index) => {
+    // Populate table rows
+    allNews.forEach((news, index) => {
         const row = document.createElement('tr');
-        row.setAttribute('data-aos', 'fade-up');
-        row.setAttribute('data-aos-delay', (index % 10) * 50);
+        const newsId = news.news_id;
+        const title = news.title || '';
+        const description = news.description || '';
+        const imageUrl = news.image_url || '';
+        const createdAt = news.created_at || '';
+        const status = news.status || '';
         
         row.innerHTML = `
-            <td class="font-medium">${news.title}</td>
-            <td>${news.datePosted}</td>
-            <td>${getStatusBadge(news.status)}</td>
+            <td class="font-medium">
+                <div class="flex items-center gap-3">
+                    ${imageUrl ? `
+                        <img src="${imageUrl}" alt="${title}" class="w-10 h-10 rounded object-cover">
+                    ` : `
+                        <div class="w-10 h-10 bg-gray-200 rounded flex items-center justify-center">
+                            <i class="fas fa-newspaper text-gray-500"></i>
+                        </div>
+                    `}
+                    <div>
+                        <div class="font-medium text-gray-900">${title}</div>
+                        <div class="text-sm text-gray-500 truncate max-w-xs">${description}</div>
+                    </div>
+                </div>
+            </td>
+            <td>${formatDate(createdAt)}</td>
+            <td>${getStatusBadge(status)}</td>
             <td>
                 <div class="action-buttons">
-                    <button class="edit-news btn-primary text-sm" data-id="${news.id}">
+                    <button class="edit-news btn-primary text-sm" data-id="${newsId}">
                         <i class="fas fa-edit mr-1"></i> Edit
                     </button>
-                    <button class="delete-news btn-danger text-sm" data-id="${news.id}">
+                    <button class="delete-news btn-danger text-sm" data-id="${newsId}">
                         <i class="fas fa-trash mr-1"></i> Delete
                     </button>
                 </div>
@@ -324,8 +383,9 @@ function renderTable() {
         });
     });
     
-    // Render pagination
-    renderPagination(totalPages);
+    // Update showing info and pagination
+    updateShowingInfo(allNews.length, paginationData);
+    renderPagination(paginationData);
     
     // Reinitialize AOS for new elements
     if (typeof AOS !== 'undefined') {
@@ -333,48 +393,67 @@ function renderTable() {
     }
 }
 
+// Update showing records info
+function updateShowingInfo(currentItemsCount, paginationData) {
+    if (!paginationData) {
+        if (showingFrom) showingFrom.textContent = currentItemsCount > 0 ? '1' : '0';
+        if (showingTo) showingTo.textContent = currentItemsCount;
+        if (totalRecords) totalRecords.textContent = currentItemsCount;
+        return;
+    }
+    
+    const startIndex = (paginationData.current_page - 1) * paginationData.per_page + 1;
+    const endIndex = Math.min(startIndex + currentItemsCount - 1, paginationData.total_items);
+    
+    if (showingFrom) showingFrom.textContent = startIndex;
+    if (showingTo) showingTo.textContent = endIndex;
+    if (totalRecords) totalRecords.textContent = paginationData.total_items;
+}
+
 // Render pagination controls
-function renderPagination(totalPages) {
+function renderPagination(paginationData) {
     if (!pagination) return;
     
     pagination.innerHTML = '';
     
-    if (totalPages <= 1) return;
+    if (!paginationData || paginationData.total_pages <= 1) {
+        return;
+    }
     
     // Previous button
     const prevButton = document.createElement('button');
-    prevButton.className = `page-btn ${currentPage === 1 ? 'disabled' : ''}`;
+    prevButton.className = `page-btn ${!paginationData.has_prev ? 'disabled' : ''}`;
     prevButton.innerHTML = '<i class="fas fa-chevron-left"></i>';
-    prevButton.disabled = currentPage === 1;
+    prevButton.disabled = !paginationData.has_prev;
     prevButton.addEventListener('click', () => {
-        if (currentPage > 1) {
-            currentPage--;
-            renderTable();
+        if (paginationData.has_prev) {
+            currentPage = paginationData.current_page - 1;
+            loadNews();
         }
     });
     pagination.appendChild(prevButton);
     
     // Page buttons
-    for (let i = 1; i <= totalPages; i++) {
+    for (let i = 1; i <= paginationData.total_pages; i++) {
         const pageButton = document.createElement('button');
-        pageButton.className = `page-btn ${i === currentPage ? 'active' : ''}`;
+        pageButton.className = `page-btn ${i === paginationData.current_page ? 'active' : ''}`;
         pageButton.textContent = i;
         pageButton.addEventListener('click', () => {
             currentPage = i;
-            renderTable();
+            loadNews();
         });
         pagination.appendChild(pageButton);
     }
     
     // Next button
     const nextButton = document.createElement('button');
-    nextButton.className = `page-btn ${currentPage === totalPages ? 'disabled' : ''}`;
+    nextButton.className = `page-btn ${!paginationData.has_next ? 'disabled' : ''}`;
     nextButton.innerHTML = '<i class="fas fa-chevron-right"></i>';
-    nextButton.disabled = currentPage === totalPages;
+    nextButton.disabled = !paginationData.has_next;
     nextButton.addEventListener('click', () => {
-        if (currentPage < totalPages) {
-            currentPage++;
-            renderTable();
+        if (paginationData.has_next) {
+            currentPage = paginationData.current_page + 1;
+            loadNews();
         }
     });
     pagination.appendChild(nextButton);
@@ -389,34 +468,57 @@ function openAddNewsModal() {
         imagePreview.src = '';
     }
     
+    // Clear news ID for new post
+    document.getElementById('newsId').value = '';
+    
     // Show modal
     if (newsModal) newsModal.classList.add('active');
 }
 
 // Open edit news modal
-function openEditNewsModal(newsId) {
-    const news = newsData.find(n => n.id === newsId);
-    if (!news) return;
-    
-    if (modalTitle) modalTitle.textContent = 'Edit Post';
-    if (newsForm) {
-        document.getElementById('newsId').value = news.id;
-        document.getElementById('title').value = news.title;
-        document.getElementById('description').value = news.description;
-        document.getElementById('image').value = news.image;
-        document.getElementById('eventDate').value = news.eventDate;
-        document.getElementById('status').value = news.status;
+async function openEditNewsModal(newsId) {
+    try {
+        showLoadingState('Loading news...');
         
-        if (news.image) {
-            imagePreview.src = news.image;
-            imagePreview.classList.remove('hidden');
-        } else {
-            imagePreview.classList.add('hidden');
+        // Find news in current data
+        const news = allNews.find(n => n.news_id === newsId);
+        if (!news) {
+            throw new Error('News not found');
         }
+        
+        if (modalTitle) modalTitle.textContent = 'Edit Post';
+        if (newsForm) {
+            document.getElementById('newsId').value = news.news_id;
+            document.getElementById('title').value = news.title;
+            document.getElementById('description').value = news.description;
+            document.getElementById('image').value = news.image_url || '';
+            
+            // Format event_date for date input (YYYY-MM-DD)
+            if (news.event_date) {
+                const eventDate = new Date(news.event_date);
+                document.getElementById('eventDate').value = eventDate.toISOString().split('T')[0];
+            } else {
+                document.getElementById('eventDate').value = '';
+            }
+            
+            document.getElementById('status').value = news.status;
+            
+            if (news.image_url) {
+                imagePreview.src = news.image_url;
+                imagePreview.classList.remove('hidden');
+            } else {
+                imagePreview.classList.add('hidden');
+            }
+        }
+        
+        // Show modal
+        if (newsModal) newsModal.classList.add('active');
+    } catch (error) {
+        console.error('Error opening edit modal:', error);
+        showError('Failed to load news: ' + error.message);
+    } finally {
+        hideLoadingState();
     }
-    
-    // Show modal
-    if (newsModal) newsModal.classList.add('active');
 }
 
 // Close news modal
@@ -427,70 +529,102 @@ function closeNewsModal() {
 }
 
 // Save news (add or update)
-function saveNews(event) {
+async function saveNews(event) {
     event.preventDefault();
     
-    // Get form data
-    const id = document.getElementById('newsId').value || 'NEWS' + String(newsData.length + 1).padStart(3, '0');
-    const title = document.getElementById('title').value;
-    const description = document.getElementById('description').value;
-    const image = document.getElementById('image').value;
-    const eventDate = document.getElementById('eventDate').value;
-    const status = document.getElementById('status').value;
-    const datePosted = new Date().toISOString().split('T')[0]; // Current date
-    
-    // Check if we're editing or adding
-    const existingIndex = newsData.findIndex(n => n.id === id);
-    
-    if (existingIndex !== -1) {
-        // Update existing news
-        newsData[existingIndex] = {
-            id,
-            title,
-            description,
-            image,
-            datePosted: newsData[existingIndex].datePosted, // Keep original date
-            eventDate,
-            status
+    try {
+        showLoadingState('Saving news...');
+        
+        // Get form data
+        const newsId = document.getElementById('newsId').value;
+        const title = document.getElementById('title').value;
+        const description = document.getElementById('description').value;
+        const image_url = document.getElementById('image').value;
+        const event_date = document.getElementById('eventDate').value;
+        const status = document.getElementById('status').value;
+        
+        const newsData = {
+            title: title.trim(),
+            description: description.trim(),
+            image_url: image_url.trim(),
+            event_date: event_date || null,
+            status: status
         };
-    } else {
-        // Add new news
-        newsData.push({
-            id,
-            title,
-            description,
-            image,
-            datePosted,
-            eventDate,
-            status
-        });
+        
+        let data;
+        
+        if (newsId) {
+            // Update existing news
+            newsData.news_id = newsId;
+            data = await makeApiRequest(ENDPOINT_URL, {
+                method: 'PUT',
+                body: newsData
+            });
+        } else {
+            // Create new news
+            data = await makeApiRequest(ENDPOINT_URL, {
+                method: 'POST',
+                body: newsData
+            });
+        }
+        
+        if (data && data.success) {
+            showSuccess(`News post ${newsId ? 'updated' : 'created'} successfully!`);
+            closeNewsModal();
+            await loadNews(); // Reload news list
+        } else {
+            throw new Error('Failed to save news');
+        }
+    } catch (error) {
+        console.error('Error saving news:', error);
+        showError('Failed to save news: ' + error.message);
+    } finally {
+        hideLoadingState();
     }
-    
-    // Update UI
-    filterNews();
-    closeNewsModal();
-    
-    // Show success message
-    alert(`News post ${existingIndex !== -1 ? 'updated' : 'added'} successfully!`);
 }
 
 // Delete news
-function deleteNews(newsId) {
-    if (!confirm('Are you sure you want to delete this news post?')) return;
+async function deleteNews(newsId) {
+    const result = await Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, delete it!',
+        cancelButtonText: 'Cancel'
+    });
     
-    const index = newsData.findIndex(n => n.id === newsId);
-    if (index !== -1) {
-        newsData.splice(index, 1);
-        filterNews();
-        alert('News post deleted successfully!');
+    if (!result.isConfirmed) return;
+    
+    try {
+        showLoadingState('Deleting news...');
+        
+        const data = await makeApiRequest(ENDPOINT_URL, {
+            method: 'DELETE',
+            body: { news_id: newsId }
+        });
+        
+        if (data && data.success) {
+            showSuccess('News deleted successfully!');
+            await loadNews(); // Reload news list
+        } else {
+            throw new Error('Failed to delete news');
+        }
+    } catch (error) {
+        console.error('Error deleting news:', error);
+        showError('Failed to delete news: ' + error.message);
+    } finally {
+        hideLoadingState();
     }
 }
 
 // Update stats cards
 function updateStats() {
-    const total = filteredNews.length;
-    const published = filteredNews.filter(n => n.status === 'published').length;
-    const draft = filteredNews.filter(n => n.status === 'draft').length;
+    const total = allNews.length;
+    const published = allNews.filter(n => n.status === 'published').length;
+    const draft = allNews.filter(n => n.status === 'draft').length;
     
     if (document.getElementById('totalPosts')) {
         document.getElementById('totalPosts').textContent = total;
@@ -501,4 +635,48 @@ function updateStats() {
     if (document.getElementById('draftPosts')) {
         document.getElementById('draftPosts').textContent = draft;
     }
+}
+
+// UI Helper Functions
+function showLoadingState(message = 'Loading...') {
+    const submitBtn = newsForm?.querySelector('button[type="submit"]');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> ' + message;
+    }
+}
+
+function hideLoadingState() {
+    const submitBtn = newsForm?.querySelector('button[type="submit"]');
+    if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Save Post';
+    }
+}
+
+// SweetAlert 2 functions
+function showSuccess(message) {
+    Swal.fire({
+        icon: 'success',
+        title: 'Success!',
+        text: message,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+    });
+}
+
+function showError(message) {
+    Swal.fire({
+        icon: 'error',
+        title: 'Error!',
+        text: message,
+        toast: true,
+        position: 'top-end',
+        showConfirmButton: false,
+        timer: 5000,
+        timerProgressBar: true,
+    });
 }
