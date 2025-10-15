@@ -339,9 +339,6 @@ function renderTable(paginationData = null) {
     // Populate table rows
     filteredBookings.forEach((booking, index) => {
         const row = document.createElement('tr');
-        row.setAttribute('data-aos', 'fade-up');
-        row.setAttribute('data-aos-delay', (index % 10) * 50);
-        
         // Generate a temporary booking ID if not provided by API
         const bookingId = booking.booking_id || `temp_${index}`;
         const firstName = booking.first_name || '';

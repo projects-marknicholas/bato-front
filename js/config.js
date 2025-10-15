@@ -10,5 +10,6 @@ window.CONFIG = {
     ADMIN_GUESTS: "/admin/guests",
     ADMIN_BOOKINGS: "/admin/bookings",
     GUEST_PROFILE: "/guest/profile",
+    GUEST_FAQS: "/guest/faqs",
   }
 };
